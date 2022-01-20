@@ -1,0 +1,7 @@
+# LaTeX compilation files
+*.aux
+*.log
+*.nav
+*.out
+*.snm
+*.toc
