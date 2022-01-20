@@ -1,0 +1,13 @@
+* Conference
+  Confoo 2022
+  February 23rd to February 25th 2022
+* Slides
+** Title
+** opening question
+** personal presentation
+** What is GraphQL?
+** Technologies in the examples
+** What is a resolver?
+** What is federation?
+** Conclusion
+** Links
