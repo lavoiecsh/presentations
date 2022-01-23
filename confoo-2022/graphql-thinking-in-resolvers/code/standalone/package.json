@@ -1,0 +1,25 @@
+{
+  "name": "standalone",
+  "version": "1.0.0",
+  "description": "Standalone GraphQL Server Example",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lavoiecsh/presentations.git"
+  },
+  "keywords": [
+    "GraphQL",
+    "NodeJS",
+    "TypeScript",
+    "ApolloServer"
+  ],
+  "author": "Sébastien Lavoie-Courchesne",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lavoiecsh/presentations/issues"
+  },
+  "homepage": "https://github.com/lavoiecsh/presentations#readme"
+}
