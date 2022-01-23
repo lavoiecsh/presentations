@@ -5,6 +5,7 @@
 ** Title
 ** opening question
 ** personal presentation
+** toc
 ** What is GraphQL?
 ** Technologies in the examples
 ** What is a resolver?
