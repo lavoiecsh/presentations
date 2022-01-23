@@ -5,3 +5,7 @@
 *.out
 *.snm
 *.toc
+*-blx.bib
+*.bbl
+*.blg
+*.run.xml
