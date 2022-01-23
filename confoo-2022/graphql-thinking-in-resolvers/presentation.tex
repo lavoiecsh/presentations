@@ -1,14 +1,25 @@
-\documentclass{beamer}
+\documentclass[notes]{beamer}
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
+
+\usepackage[backend=bibtex]{biblatex}
+\bibliography{presentation}
+
+\usepackage{listings}
+\lstdefinelanguage{GraphQL}{
+  keywords={type,enum,union,interface},
+  morekeywords={ID,String,Integer}
+  sensitive=true,
+  comment=[l]{#},
+  morestring=[b]"
+}
 
 \title{GraphQL:\@Thinking in Resolvers}
 \author{Sébastien Lavoie-Courchesne}
 \date{February 23rd 2022}
 
 \begin{document}
-
 \begin{frame}
   \titlepage{}
 \end{frame}
@@ -18,6 +29,7 @@
   opening
 \end{frame}
 
+
 \begin{frame}{Sébastien Lavoie-Courchesne}
   \begin{itemize}
   \item Architect for the Catalog Group at AppDirect
@@ -26,8 +38,10 @@
   \end{itemize}
 \end{frame}
 
+
 \begin{frame}{Contents}
 \end{frame}
+
 
 \begin{frame}{Technologies used in the examples}
   \begin{itemize}
@@ -41,10 +55,98 @@
   \end{itemize}
 \end{frame}
 
+
 \section{GraphQL}
 \begin{frame}{What is GraphQL?}
-  
+  From the GraphQL Specification\cite{graphql-spec}:
+  \begin{quote}
+    GraphQL is a query language designed to build client applications by providing an intuitive and flexible syntax and system for describing their data requirements and interactions.
+  \end{quote}
 \end{frame}
+
+
+\begin{frame}{But What is GraphQL?}
+  A specification defining a query language for communication between different services over a network and how to implement the server and client sides of the communication
+\end{frame}
+
+
+\begin{frame}{Why GraphQL?}
+  Only request and receive the fields you want:
+  \begin{itemize}
+  \item Smaller payloads
+  \item Descriptive language
+  \item Documented
+  \end{itemize}
+\end{frame}
+\note{Often compared to REST and gRPC}
+\note{Mostly used over HTTP, but not always}
+
+
+\begin{frame}{How does it work?}
+  Server defines the schema it serves using the GraphQL language
+
+  Clients can read the schema and send queries to the server using the GraphQL language, optionally passing in variables
+\end{frame}
+\note{typically one query per request, multiple queries in a single request are supported}
+
+
+\begin{frame}{Operations}
+  \begin{description}
+    \item[Query] a read-only fetch, analogous to REST GET
+    \item[Mutation] a write followed by a fetch, analogous to REST POST/PATCH/PUT/DELETE
+    \item[Subscription] a long-lived request that fetches data in response to source events
+  \end{description}
+\end{frame}
+\note{Subscription is less often used and less documented, multiple ways to serve it (WebSocket, Kafka, RabbitMQ, etc)}
+
+
+\begin{frame}{HTTP Communication}
+  \begin{itemize}
+  \item Most common use of GraphQL
+  \item HTTP GET or POST to a specific URL
+  \item Traditional HTTP headers/cookies
+  \item GET \texttt{query} parameter contains the query as a string
+  \item POST Body includes
+    \begin{itemize}
+    \item[\texttt{query}] Query as a string
+    \item[\texttt{variables}] Query variable values as a JSON object, optional
+    \item[\texttt{operationName}] Name for the operation, optional
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+
+\section{GraphQL Language}
+\begin{frame}{Types and fields}
+  \begin{lstlisting}[language=GraphQL]
+    "A blog post"
+
+    type Post {
+
+      "The blog post's identifier"
+
+      id: ID!
+
+      "Title of the blog post"
+
+      title: String!
+
+      "Contents of the blog post"
+
+      contents(format: BlogContentsFormat): String!
+
+    }
+
+    "Possible Blog Contents Formats"
+    enum BlogContentsFormat {
+      "Simple text"
+      TEXT
+      "HTML formatted"
+      HTML
+    }
+  \end{lstlisting}
+\end{frame}
+
 
 \section{Resolver}
 \section{Federation}
@@ -57,6 +159,10 @@
   \item blog
   \item this presentation
   \end{itemize}
+\end{frame}
+
+\begin{frame}{References}
+  \printbibliography{}
 \end{frame}
 
 \end{document}
