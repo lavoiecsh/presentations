@@ -1,0 +1,89 @@
+type User {
+  id: ID!
+  username: String!
+  blogs: [Blog!]!
+  comments: [Comment!]!
+}
+
+type Blog {
+  id: ID!
+  title: String!
+  author: User!
+  contents: String!
+  comments: [Comment!]!
+}
+
+type Comment {
+  id: ID!
+  blog: Blog!
+  author: User!
+  contents: String!
+}
+
+type Query {
+  blog(id: ID!): Blog!
+  blogs: [Blog!]!
+  user(id: ID!): User!
+}
+
+type Mutation {
+  createUser(input: CreateUserInput!): CreateUserPayload!
+  createBlog(input: CreateBlogInput!): CreateBlogPayload!
+  commentOnBlog(input: CommentOnBlogInput!): CommentOnBlogPayload!
+}
+
+input CreateUserInput {
+  username: String!
+}
+
+type CreateUserPayload {
+  user: User
+  errors: [CreateUserError!]
+}
+
+union CreateUserError = EmptyUsernameError
+
+input CreateBlogInput {
+  title: String!
+  contents: String!
+}
+
+type CreateBlogPayload {
+  blog: Blog
+  errors: [CreateBlogError!]
+}
+
+union CreateBlogError = EmptyTitleError | EmptyContentsError
+
+input CommentOnBlogInput {
+  blog: ID!
+  contents: String!
+}
+
+type CommentOnBlogPayload {
+  comment: Comment
+  errors: [CommentOnBlogError!]
+}
+
+union CommentOnBlogError = UnknownBlogError | EmptyContentsError
+
+interface UsageError {
+  message: String!
+}
+
+type UnknownBlogError implements UsageError {
+  message: String!
+  blog: ID!
+}
+
+type EmptyUsernameError implements UsageError {
+  message: String!
+}
+
+type EmptyTitleError implements UsageError {
+  message: String!
+}
+
+type EmptyContentsError implements UsageError {
+  message: String!
+}
