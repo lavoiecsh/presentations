@@ -1,15 +1,15 @@
 import { DataSource } from 'apollo-datasource';
 import { User } from '../domain/User';
-import { UserDataSource } from './BlogDataSources';
+import { UserDataSource } from './ChirpContext';
 
 export class UserInMemoryDataSource extends DataSource implements UserDataSource {
     private readonly users: User[];
-    
+
     constructor() {
         super();
         this.users = [];
     }
-    
+
     create(username: string): Promise<User> {
         const user = {
             id: (this.users.length + 1).toString(),
@@ -21,5 +21,9 @@ export class UserInMemoryDataSource extends DataSource implements UserDataSource
 
     get(id: string): Promise<User | null> {
         return Promise.resolve(this.users.find(u => u.id === id));
+    }
+
+    exists(username: string): Promise<boolean> {
+        return Promise.resolve(!!this.users.find(u => u.username === username));
     }
 }

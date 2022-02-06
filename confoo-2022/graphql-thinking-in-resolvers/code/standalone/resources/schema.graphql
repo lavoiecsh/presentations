@@ -1,35 +1,40 @@
 type User {
   id: ID!
   username: String!
-  blogs: [Blog!]!
-  comments: [Comment!]!
+  chirps: [Chirp!]!
 }
 
-type Blog {
+type Chirp {
   id: ID!
-  title: String!
-  author: User!
   contents: String!
-  comments: [Comment!]!
-}
-
-type Comment {
-  id: ID!
-  blog: Blog!
   author: User!
-  contents: String!
+  parent: Chirp
+  replies: [Chirp!]!
 }
 
 type Query {
-  blog(id: ID!): Blog!
-  blogs: [Blog!]!
   user(id: ID!): User!
+  chirp(id: ID!): Chirp!
+  chirps(first: Int, after: String, last: Int, before: String): ChirpConnection!
+}
+
+type ChirpConnection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  nodes: [Chirp!]!
+}
+
+type PageInfo {
+  hasPreviousPage: Boolean!
+  hasNextPage: Boolean!
+  startCursor: String
+  endCursor: String
 }
 
 type Mutation {
   createUser(input: CreateUserInput!): CreateUserPayload!
-  createBlog(input: CreateBlogInput!): CreateBlogPayload!
-  commentOnBlog(input: CommentOnBlogInput!): CommentOnBlogPayload!
+  chirp(input: ChirpInput!): ChirpPayload!
+  reply(input: ReplyInput!): ReplyPayload!
 }
 
 input CreateUserInput {
@@ -38,52 +43,63 @@ input CreateUserInput {
 
 type CreateUserPayload {
   user: User
-  errors: [CreateUserError!]
+  errors: [CreateUsageError!]
 }
 
-union CreateUserError = EmptyUsernameError
+union CreateUsageError = EmptyUsername | InvalidUsername | UsernameTaken
 
-input CreateBlogInput {
-  title: String!
+input ChirpInput {
   contents: String!
 }
 
-type CreateBlogPayload {
-  blog: Blog
-  errors: [CreateBlogError!]
+type ChirpPayload {
+  chirp: Chirp
+  errors: [ChirpUsageError!]
 }
 
-union CreateBlogError = EmptyTitleError | EmptyContentsError
+union ChirpUsageError = EmptyContents | TooLongContents
 
-input CommentOnBlogInput {
-  blog: ID!
+input ReplyInput {
+  chirp: ID!
   contents: String!
 }
 
-type CommentOnBlogPayload {
-  comment: Comment
-  errors: [CommentOnBlogError!]
+type ReplyPayload {
+  reply: Chirp
+  errors: [ReplyUsageError!]
 }
 
-union CommentOnBlogError = UnknownBlogError | EmptyContentsError
+union ReplyUsageError = EmptyContents | TooLongContents | ChirpNotFound
 
 interface UsageError {
   message: String!
 }
 
-type UnknownBlogError implements UsageError {
-  message: String!
-  blog: ID!
-}
-
-type EmptyUsernameError implements UsageError {
+type EmptyUsername implements UsageError {
   message: String!
 }
 
-type EmptyTitleError implements UsageError {
+type InvalidUsername implements UsageError {
+  message: String!
+  username: String!
+}
+
+type UsernameTaken implements UsageError {
+  message: String!
+  username: String!
+}
+
+type EmptyContents implements UsageError {
   message: String!
 }
 
-type EmptyContentsError implements UsageError {
+type TooLongContents implements UsageError {
   message: String!
+  length: Int!
+  maxLength: Int!
+}
+
+type ChirpNotFound implements UsageError {
+  message: String!
+  chirpId: ID!
 }

@@ -1,31 +1,43 @@
 export abstract class UsageError {
     readonly __typename: string;
-    
-    constructor(readonly message: string) {
+
+    protected constructor(readonly message: string) {
         this.__typename = this.constructor.name;
     }
 }
 
-export class UnknownBlogError extends UsageError {
-    constructor(readonly blog: string) {
-        super(`Blog with id ${blog} not found`);
-    }
-}
-
-export class EmptyUsernameError extends UsageError {
+export class EmptyUsername extends UsageError {
     constructor() {
         super('Username cannot be empty');
     }
 }
 
-export class EmptyTitleError extends UsageError {
-    constructor() {
-        super('Title cannot be empty');
+export class InvalidUsername extends UsageError {
+    constructor(readonly username: string) {
+        super('Username must not contain whitespace characters');
     }
 }
 
-export class EmptyContentsError extends UsageError {
+export class UsernameTaken extends UsageError {
+    constructor(readonly username: string) {
+        super('Username is already taken');
+    }
+}
+
+export class EmptyContents extends UsageError {
     constructor() {
-        super('Contents canno be empty');
+        super('Contents cannot be empty');
+    }
+}
+
+export class TooLongContents extends UsageError {
+    constructor(readonly maxLength: number, readonly length: number) {
+        super(`Contents cannot exceed ${maxLength}`);
+    }
+}
+
+export class ChirpNotFound extends UsageError {
+    constructor(readonly chirpId: string) {
+        super('Chirp not found');
     }
 }

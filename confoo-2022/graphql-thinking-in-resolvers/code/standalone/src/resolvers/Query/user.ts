@@ -1,13 +1,13 @@
 import { UserInputError } from 'apollo-server-errors';
 
 import { User } from '../../domain/User';
-import { BlogContext } from '../../dataSources/BlogContext';
+import { ChirpContext } from '../../dataSources/ChirpContext';
 
 export function user(
-    _parent: null, // parent
-    { id }: { id: string }, // arguments
-    { dataSources: { users } }: BlogContext, // context
+  _parent: null,
+  { id }: { id: string },
+  { dataSources: { users } }: ChirpContext,
 ): Promise<User> {
-    return users.get(id)
-        .then(user => user || Promise.reject(new UserInputError(`User with id ${id} not found`)));
+  return users.get(id)
+    .then(user => user || Promise.reject(new UserInputError(`User with id ${id} not found`)));
 }
