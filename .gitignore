@@ -13,3 +13,6 @@
 
 # JavaScript/TypeScript imports and compilation files
 node_modules
+
+# JetBrains stuff
+.idea
