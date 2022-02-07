@@ -8,7 +8,7 @@ describe('User Scenarios', () => {
 
   beforeAll(() =>
     server.listen({ port: 0 })
-      .then(({ url }) => client.unauthenticated().setUri(url)));
+      .then(({ url }) => client.unauthenticated().setUrl(url)));
 
   afterAll(() =>
     server.stop());

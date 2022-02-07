@@ -1,8 +1,5 @@
 import { makeServer } from '../src/server/makeServer';
 import { TestClient } from './TestClient';
-import { createHttpLink } from '@apollo/client/core';
-import fetch from 'cross-fetch';
-import { setContext } from '@apollo/client/link/context';
 import { Chirp, UsageError } from './types';
 
 describe('Chirp Scenarios', () => {
@@ -11,39 +8,41 @@ describe('Chirp Scenarios', () => {
 
   beforeAll(() =>
     server.listen({ port: 0 })
-      .then(({ url }) => client.setLink(createHttpLink({ uri: url, fetch }))));
+      .then(({ url }) => client.setUrl(url)));
 
   afterAll(() =>
     server.stop());
 
   it('user must be authenticated through headers', () =>
-    expect(client.chirp('a test')).rejects.toMatchObject({ message: 'Unauthenticated' }));
+    expect(client.unauthenticated().chirp('a test')).rejects.toMatchObject({ message: 'Unauthenticated' }));
+
+  it('user must exist', () =>
+    expect(client.authenticated('none').chirp('a test')).rejects.toMatchObject({ message: 'Unauthenticated' }));
 
   describe('with an authenticated user', () => {
     beforeAll(() =>
       client.createUser('test')
-        .then(({ user }) => client.setLink(setContext((_, { headers }) => ({
-          ...headers,
-          authorization: user.id,
-        })).concat(client.link))));
+        .then(({ user }) => client.authenticated(user.id)));
 
     it('must have contents', () =>
       client.chirp('')
         .then(({ chirp, errors }) => {
           expect(chirp).toBeNull();
-          expect(errors).toContain({
+          expect(errors).toContainEqual({
             __typename: 'EmptyContents',
+            message: expect.any(String),
           });
         }));
 
     it('contents must not be longer than 100 characters', () =>
-      client.chirp(new Array(101).join('a'))
+      client.chirp(new Array(102).join('a'))
         .then(({ chirp, errors }) => {
           expect(chirp).toBeNull();
-          expect(errors).toContain({
+          expect(errors).toContainEqual({
             __typename: 'TooLongContents',
             length: 101,
             maxLength: 100,
+            message: expect.any(String),
           });
         }));
 
@@ -71,7 +70,7 @@ describe('Chirp Scenarios', () => {
         expect(chirp.author.username).toBe('test'));
 
       it('its author\'s chirps contains itself', () =>
-        expect(chirp.author.chirps).toContain(expect.objectContaining({ id: chirp.id, contents: chirp.contents })));
+        expect(chirp.author.chirps).toContainEqual(expect.objectContaining({ id: chirp.id, contents: chirp.contents })));
     });
   });
 });

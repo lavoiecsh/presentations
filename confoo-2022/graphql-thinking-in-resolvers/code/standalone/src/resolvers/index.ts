@@ -1,9 +1,11 @@
 import { Query } from './Query';
 import { Mutation } from './Mutation';
 import { User } from './User';
+import { Chirp } from './Chirp';
 
 export const resolvers = {
-    Query,
-    Mutation,
-    User,
+  Chirp,
+  Query,
+  Mutation,
+  User,
 };

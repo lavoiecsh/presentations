@@ -12,7 +12,7 @@ export function makeServer(): ApolloServer {
   return new ApolloServer({
     typeDefs: gql(readFileSync(join(process.cwd(), 'resources', 'schema.graphql'), 'utf8')),
     context: ({ req }) => ({
-      user: req.header('Authorization'),
+      user: req.header('authorization'),
     }),
     dataSources: () => ({
       users,

@@ -1,31 +1,43 @@
 import { ApolloClient, createHttpLink, gql, InMemoryCache, NormalizedCacheObject } from '@apollo/client/core';
 import { Chirp, ChirpConnection, ChirpPayload, CreateUserPayload, ReplyPayload, User } from './types';
 import { PageRequest } from './PageRequest';
-import { setContext } from '@apollo/client/link/context';
 import fetch from 'cross-fetch';
 
 export class TestClient extends ApolloClient<NormalizedCacheObject> {
-  private userId: string;
+  private url: string;
+  private userId: string | null;
 
   constructor() {
     super({ cache: new InMemoryCache() });
-    this.userId = null;
   }
 
-  setUri(uri: string): this {
-    const httpLink = createHttpLink({ uri, fetch });
-    const headersLink = setContext((_, { headers }) => ({ ...headers, authorization: this.userId }));
-    this.setLink(headersLink.concat(httpLink));
+  setUrl(url: string): this {
+    this.url = url;
+    super.setLink(createHttpLink({
+      uri: this.url,
+      fetch,
+      headers: { 'authorization': this.userId },
+    }));
     return this;
   }
 
   authenticated(userId: string): this {
     this.userId = userId;
+    super.setLink(createHttpLink({
+      uri: this.url,
+      fetch,
+      headers: { 'authorization': this.userId },
+    }));
     return this;
   }
 
   unauthenticated(): this {
     this.userId = null;
+    super.setLink(createHttpLink({
+      uri: this.url,
+      fetch,
+      headers: { 'authorization': this.userId },
+    }));
     return this;
   }
 
@@ -136,34 +148,38 @@ export class TestClient extends ApolloClient<NormalizedCacheObject> {
   chirp(contents: string): Promise<ChirpPayload> {
     return super.mutate<{ chirp: ChirpPayload }>({
       mutation: gql`
-        mutation ($contents: String!) {
-            chirp(input: { contents: $contents }) {
-                chirp {
-                    id
-                    contents
-                    author {
-                        id
-                        username
-                    }
-                    parent {
-                        id
-                    }
-                    replies {
-                        id
-                    }
-                }
-                errors {
-                    __typename
-                    ... on UsageError {
-                        message
-                    }
-                    ... on TooLongContents {
-                        length
-                        maxLength
-                    }
-                }
-            }
-        }
+          mutation ($contents: String!) {
+              chirp(input: { contents: $contents }) {
+                  chirp {
+                      id
+                      contents
+                      author {
+                          id
+                          username
+                          chirps {
+                              id
+                              contents
+                          }
+                      }
+                      parent {
+                          id
+                      }
+                      replies {
+                          id
+                      }
+                  }
+                  errors {
+                      __typename
+                      ... on UsageError {
+                          message
+                      }
+                      ... on TooLongContents {
+                          length
+                          maxLength
+                      }
+                  }
+              }
+          }
       `,
       variables: { contents },
     }).then(result => result.data.chirp);
@@ -172,41 +188,41 @@ export class TestClient extends ApolloClient<NormalizedCacheObject> {
   reply(chirp: string, contents: string): Promise<ReplyPayload> {
     return super.mutate<{ reply: ReplyPayload }>({
       mutation: gql`
-        mutation ($chirp: ID!, $contents: String!) {
-            reply(input: { 
-                chirp: $chirp
-                contents: $contents
-            }) {
-                reply {
-                    id
-                    contents
-                    author {
-                        id
-                        username
-                    }
-                    parent {
-                        id
-                        contents
-                        replies {
-                            id
-                        }
-                    }
-                }
-                errors {
-                    __typename
-                    ... on UsageError {
-                        message
-                    }
-                    ... on TooLongContents {
-                        length
-                        maxLength
-                    }
-                    ... on ChirpNotFound {
-                        chirpId
-                    }
-                }
-            }
-        }
+          mutation ($chirp: ID!, $contents: String!) {
+              reply(input: {
+                  chirp: $chirp
+                  contents: $contents
+              }) {
+                  reply {
+                      id
+                      contents
+                      author {
+                          id
+                          username
+                      }
+                      parent {
+                          id
+                          contents
+                          replies {
+                              id
+                          }
+                      }
+                  }
+                  errors {
+                      __typename
+                      ... on UsageError {
+                          message
+                      }
+                      ... on TooLongContents {
+                          length
+                          maxLength
+                      }
+                      ... on ChirpNotFound {
+                          chirpId
+                      }
+                  }
+              }
+          }
       `,
       variables: { chirp, contents },
     }).then(result => result.data.reply);

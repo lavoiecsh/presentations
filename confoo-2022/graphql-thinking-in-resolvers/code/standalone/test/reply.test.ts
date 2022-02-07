@@ -10,7 +10,7 @@ describe('Reply Scenarios', () => {
 
   beforeAll(() =>
     server.listen({ port: 0 })
-      .then(({ url }) => client.setUri(url))
+      .then(({ url }) => client.setUrl(url))
       .then(() => client.createUser('test'))
       .then(payload => user = payload.user)
       .then(() => client.authenticated(user.id))
@@ -86,8 +86,8 @@ describe('Reply Scenarios', () => {
       it('its parent\'s replies contains itself', () =>
         expect(reply.parent.replies).toContain(expect.objectContaining({ id: reply.id, contents: reply.contents })));
 
-      it('does not show up in its author\'s chirps', () =>
-        expect(reply.author.chirps).not.toContain(expect.objectContaining({ id: reply.id })));
+      it('is present in its author\'s chirps', () =>
+        expect(reply.author.chirps).toContain(expect.objectContaining({ id: reply.id })));
     });
   });
 });
