@@ -2,6 +2,7 @@ import { ApolloClient, createHttpLink, gql, InMemoryCache, NormalizedCacheObject
 import { Chirp, ChirpConnection, ChirpPayload, CreateUserPayload, ReplyPayload, User } from './types';
 import { PageRequest } from './PageRequest';
 import fetch from 'cross-fetch';
+import { ChirpFragment, ErrorsFragment, UserFragment } from './fragments';
 
 export class TestClient extends ApolloClient<NormalizedCacheObject> {
   private url: string;
@@ -44,14 +45,11 @@ export class TestClient extends ApolloClient<NormalizedCacheObject> {
   queryUser(id: string): Promise<User> {
     return super.query<{ user: User }>({
       query: gql`
+          ${UserFragment}
+          
           query ($id: ID!) {
               user(id: $id) {
-                  id
-                  username
-                  chirps {
-                      id
-                      contents
-                  }
+                  ...UserFragment
               }
           }
       `,
@@ -62,14 +60,11 @@ export class TestClient extends ApolloClient<NormalizedCacheObject> {
   queryChirp(id: string): Promise<Chirp> {
     return super.query<{ chirp: Chirp }>({
       query: gql`
+          ${ChirpFragment}
+          
           query ($id: ID!) {
               chirp(id: $id) {
-                  id
-                  contents
-                  author {
-                      id
-                      username
-                  }
+                  ...ChirpFragment
               }
           }
       `,
@@ -113,31 +108,13 @@ export class TestClient extends ApolloClient<NormalizedCacheObject> {
   createUser(username: string): Promise<CreateUserPayload> {
     return super.mutate<{ createUser: CreateUserPayload }>({
       mutation: gql`
+          ${UserFragment}
+          ${ErrorsFragment}
+          
           mutation ($username: String!) {
               createUser(input: { username: $username }) {
-                  user {
-                      id
-                      username
-                      chirps {
-                          id
-                          contents
-                          author {
-                              id
-                          }
-                      }
-                  }
-                  errors {
-                      __typename
-                      ... on UsageError {
-                          message
-                      }
-                      ... on InvalidUsername {
-                          username
-                      }
-                      ... on UsernameTaken {
-                          username
-                      }
-                  }
+                  user { ...UserFragment }
+                  errors { ...ErrorsFragment }
               }
           }
       `,
@@ -148,36 +125,13 @@ export class TestClient extends ApolloClient<NormalizedCacheObject> {
   chirp(contents: string): Promise<ChirpPayload> {
     return super.mutate<{ chirp: ChirpPayload }>({
       mutation: gql`
+          ${ChirpFragment}
+          ${ErrorsFragment}
+          
           mutation ($contents: String!) {
               chirp(input: { contents: $contents }) {
-                  chirp {
-                      id
-                      contents
-                      author {
-                          id
-                          username
-                          chirps {
-                              id
-                              contents
-                          }
-                      }
-                      parent {
-                          id
-                      }
-                      replies {
-                          id
-                      }
-                  }
-                  errors {
-                      __typename
-                      ... on UsageError {
-                          message
-                      }
-                      ... on TooLongContents {
-                          length
-                          maxLength
-                      }
-                  }
+                  chirp { ...ChirpFragment }
+                  errors { ...ErrorsFragment }
               }
           }
       `,
@@ -188,48 +142,16 @@ export class TestClient extends ApolloClient<NormalizedCacheObject> {
   reply(chirp: string, contents: string): Promise<ReplyPayload> {
     return super.mutate<{ reply: ReplyPayload }>({
       mutation: gql`
+          ${ChirpFragment}
+          ${ErrorsFragment}
+          
           mutation ($chirp: ID!, $contents: String!) {
               reply(input: {
                   chirp: $chirp
                   contents: $contents
               }) {
-                  reply {
-                      id
-                      contents
-                      author {
-                          id
-                          username
-                          chirps {
-                              id
-                              contents
-                          }
-                      }
-                      parent {
-                          id
-                          contents
-                          replies {
-                              id
-                              contents
-                          }
-                      }
-                      replies {
-                          id
-                          contents
-                      }
-                  }
-                  errors {
-                      __typename
-                      ... on UsageError {
-                          message
-                      }
-                      ... on TooLongContents {
-                          length
-                          maxLength
-                      }
-                      ... on ChirpNotFound {
-                          chirpId
-                      }
-                  }
+                  reply { ...ChirpFragment }
+                  errors { ...ErrorsFragment }
               }
           }
       `,

@@ -19,6 +19,9 @@ describe('Chirp Scenarios', () => {
   it('user must exist', () =>
     expect(client.authenticated('none').chirp('a test')).rejects.toMatchObject({ message: 'Unauthenticated' }));
 
+  it('returns not found if the chirp doesn\'t exist', () =>
+    expect(client.queryChirp('none')).rejects.toMatchObject({ message: 'Chirp with id none not found' }));
+
   describe('with an authenticated user', () => {
     beforeAll(() =>
       client.createUser('test')
@@ -71,6 +74,12 @@ describe('Chirp Scenarios', () => {
 
       it('its author\'s chirps contains itself', () =>
         expect(chirp.author.chirps).toContainEqual(expect.objectContaining({ id: chirp.id, contents: chirp.contents })));
+
+      it('can be queried', () =>
+        client.queryChirp(chirp.id)
+          .then(queriedChirp => {
+            expect(queriedChirp).toMatchObject(chirp);
+          }));
     });
   });
 });
