@@ -23,6 +23,9 @@ describe('Reply Scenarios', () => {
   it('user must be authenticated through headers', () =>
     expect(client.unauthenticated().reply(chirp.id, 'reply')).rejects.toMatchObject({ message: 'Unauthenticated' }));
 
+  it('user must exist', () =>
+    expect(client.authenticated('none').reply(chirp.id, 'reply')).rejects.toMatchObject({ message: 'Unauthenticated' }));
+
   describe('with an authenticated user', () => {
     beforeAll(() =>
       client.authenticated(user.id));
@@ -31,19 +34,21 @@ describe('Reply Scenarios', () => {
       client.reply(chirp.id, '')
         .then(({ reply, errors }) => {
           expect(reply).toBeNull();
-          expect(errors).toContain({
+          expect(errors).toContainEqual({
             __typename: 'EmptyContents',
+            message: expect.any(String),
           });
         }));
 
     it('contents must not be longer than 100 characters', () =>
-      client.reply(chirp.id, Array(101).join('a'))
+      client.reply(chirp.id, Array(102).join('a'))
         .then(({ reply, errors }) => {
           expect(reply).toBeNull();
-          expect(errors).toContain({
+          expect(errors).toContainEqual({
             __typename: 'TooLongContents',
             length: 101,
             maxLength: 100,
+            message: expect.any(String),
           });
         }));
 
@@ -51,9 +56,25 @@ describe('Reply Scenarios', () => {
       client.reply('none', 'test')
         .then(({ reply, errors }) => {
           expect(reply).toBeNull();
-          expect(errors).toContain({
+          expect(errors).toContainEqual({
             __typename: 'ChirpNotFound',
             chirpId: 'none',
+            message: expect.any(String),
+          });
+        }));
+
+    it('returns all errors at once', () =>
+      client.reply('none', '')
+        .then(({ reply, errors }) => {
+          expect(reply).toBeNull();
+          expect(errors).toContainEqual({
+            __typename: 'EmptyContents',
+            message: expect.any(String),
+          });
+          expect(errors).toContainEqual({
+            __typename: 'ChirpNotFound',
+            chirpId: 'none',
+            message: expect.any(String),
           });
         }));
 
@@ -84,10 +105,10 @@ describe('Reply Scenarios', () => {
         expect(reply.parent.id).toBe(chirp.id));
 
       it('its parent\'s replies contains itself', () =>
-        expect(reply.parent.replies).toContain(expect.objectContaining({ id: reply.id, contents: reply.contents })));
+        expect(reply.parent.replies).toContainEqual(expect.objectContaining({ id: reply.id, contents: reply.contents })));
 
       it('is present in its author\'s chirps', () =>
-        expect(reply.author.chirps).toContain(expect.objectContaining({ id: reply.id })));
+        expect(reply.author.chirps).toContainEqual(expect.objectContaining({ id: reply.id })));
     });
   });
 });

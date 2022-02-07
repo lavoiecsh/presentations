@@ -199,13 +199,22 @@ export class TestClient extends ApolloClient<NormalizedCacheObject> {
                       author {
                           id
                           username
+                          chirps {
+                              id
+                              contents
+                          }
                       }
                       parent {
                           id
                           contents
                           replies {
                               id
+                              contents
                           }
+                      }
+                      replies {
+                          id
+                          contents
                       }
                   }
                   errors {

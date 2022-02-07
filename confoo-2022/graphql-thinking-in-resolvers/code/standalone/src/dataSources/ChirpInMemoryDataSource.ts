@@ -10,18 +10,26 @@ export class ChirpInMemoryDataSource extends DataSource implements ChirpDataSour
     this.chirps = [];
   }
 
-  create(authorId: string, contents: string): Promise<Chirp> {
+  create(authorId: string, contents: string, parentId: string = null): Promise<Chirp> {
     const chirp: Chirp = {
       id: (this.chirps.length + 1).toString(),
       authorId,
-      parentId: null,
+      parentId,
       contents,
     };
     this.chirps.push(chirp);
     return Promise.resolve(chirp);
   }
 
+  get(chirpId: string): Promise<Chirp | null> {
+    return Promise.resolve(this.chirps.find(c => c.id === chirpId));
+  }
+
   getByAuthor(authorId: string): Promise<Chirp[]> {
     return Promise.resolve(this.chirps.filter(c => c.authorId === authorId));
+  }
+
+  getByParent(parentId: string): Promise<Chirp[]> {
+    return Promise.resolve(this.chirps.filter(c => c.parentId === parentId));
   }
 }

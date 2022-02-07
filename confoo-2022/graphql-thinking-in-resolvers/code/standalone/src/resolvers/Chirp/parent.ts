@@ -1,10 +1,10 @@
 import { Chirp } from '../../domain/Chirp';
 import { ChirpContext } from '../../dataSources/ChirpContext';
 
-export function replies(
-  { id }: Chirp,
+export function parent(
+  { parentId }: Chirp,
   _arguments: null,
   { dataSources: { chirps } }: ChirpContext,
-): Promise<Chirp[]> {
-  return chirps.getByParent(id);
+): Promise<Chirp | null> {
+  return parentId ? chirps.get(parentId) : null;
 }

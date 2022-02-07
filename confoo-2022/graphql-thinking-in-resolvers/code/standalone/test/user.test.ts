@@ -44,6 +44,9 @@ describe('User Scenarios', () => {
         expect(error.message).toBeDefined();
       }));
 
+  it('returns not found if the user doesn\'t exist', () =>
+    expect(client.queryUser('none')).rejects.toMatchObject({ message: 'User with id none not found' }));
+
   describe('new users', () => {
     let user: User;
     let errors: UsageError[];

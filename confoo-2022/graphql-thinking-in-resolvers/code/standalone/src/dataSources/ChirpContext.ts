@@ -13,8 +13,10 @@ export interface UserDataSource {
 }
 
 export interface ChirpDataSource {
-  create(authorId: string, contents: string): Promise<Chirp>;
+  create(authorId: string, contents: string, parentId?: string): Promise<Chirp>;
+  get(chirpId: string): Promise<Chirp | null>;
   getByAuthor(authorId: string): Promise<Chirp[]>;
+  getByParent(parentId: string): Promise<Chirp[]>;
 }
 
 export interface ChirpDataSources {
