@@ -1,8 +1,9 @@
 import { ApolloClient, createHttpLink, gql, InMemoryCache, NormalizedCacheObject } from '@apollo/client/core';
-import { Chirp, ChirpConnection, ChirpPayload, CreateUserPayload, ReplyPayload, User } from './types';
+import { Chirp, ChirpPayload, CreateUserPayload, ReplyPayload, User } from './types';
 import { PageRequest } from './PageRequest';
 import fetch from 'cross-fetch';
 import { ChirpFragment, ErrorsFragment, UserFragment } from './fragments';
+import { Connection } from '../src/dataSources/pagination';
 
 export class TestClient extends ApolloClient<NormalizedCacheObject> {
   private url: string;
@@ -72,8 +73,8 @@ export class TestClient extends ApolloClient<NormalizedCacheObject> {
     }).then(result => result.data.chirp);
   }
 
-  queryChirps(pageRequest: PageRequest): Promise<ChirpConnection> {
-    return super.query<{ chirps: ChirpConnection }>({
+  queryChirps(pageRequest: PageRequest): Promise<Connection<Chirp>> {
+    return super.query<{ chirps: Connection<Chirp> }>({
       query: gql`
           query ($first: Int, $after: String, $last: Int, $before: String) {
               chirps(first: $first, after: $after, last: $last, before: $before) {

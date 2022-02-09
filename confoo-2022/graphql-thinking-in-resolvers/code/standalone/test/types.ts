@@ -19,12 +19,6 @@ export interface PageInfo {
   endCursor: string | null;
 }
 
-export interface ChirpConnection {
-  totalCount: number;
-  pageInfo: PageInfo;
-  nodes: Chirp[];
-}
-
 export interface UsageError {
   __typename: string;
   message: string;

@@ -73,7 +73,10 @@ describe('Chirp Scenarios', () => {
         expect(chirp.author.username).toBe('test'));
 
       it('its author\'s chirps contains itself', () =>
-        expect(chirp.author.chirps).toContainEqual(expect.objectContaining({ id: chirp.id, contents: chirp.contents })));
+        expect(chirp.author.chirps).toContainEqual(expect.objectContaining({
+          id: chirp.id,
+          contents: chirp.contents,
+        })));
 
       it('can be queried', () =>
         client.queryChirp(chirp.id)
@@ -81,5 +84,6 @@ describe('Chirp Scenarios', () => {
             expect(queriedChirp).toMatchObject(chirp);
           }));
     });
+
   });
 });
