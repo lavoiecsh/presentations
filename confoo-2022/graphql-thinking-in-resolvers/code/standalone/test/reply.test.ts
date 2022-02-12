@@ -23,9 +23,6 @@ describe('Reply Scenarios', () => {
   it('user must be authenticated through headers', () =>
     expect(client.unauthenticated().reply(chirp.id, 'reply')).rejects.toMatchObject({ message: 'Unauthenticated' }));
 
-  it('user must exist', () =>
-    expect(client.authenticated('none').reply(chirp.id, 'reply')).rejects.toMatchObject({ message: 'Unauthenticated' }));
-
   describe('with an authenticated user', () => {
     beforeAll(() =>
       client.authenticated(user.id));

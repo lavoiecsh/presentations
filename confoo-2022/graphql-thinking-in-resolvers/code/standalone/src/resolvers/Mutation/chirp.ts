@@ -15,9 +15,9 @@ interface ChirpPayload {
 export async function chirp(
   _parent: null,
   { input: { contents } }: { input: ChirpInput },
-  { user, dataSources: { users, chirps } }: ChirpContext,
+  { user, dataSources: { chirps } }: ChirpContext,
 ): Promise<ChirpPayload> {
-  if (!user || !await users.get(user))
+  if (!user)
     throw new AuthenticationError('Unauthenticated');
 
   const errors = await validateContents();

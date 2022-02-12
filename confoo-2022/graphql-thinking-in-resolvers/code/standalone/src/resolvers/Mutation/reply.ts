@@ -16,9 +16,9 @@ interface ReplyPayload {
 export async function reply(
   _parent: null,
   { input: { chirp, contents } }: { input: ReplyInput },
-  { user, dataSources: { users, chirps } }: ChirpContext,
+  { user, dataSources: { chirps } }: ChirpContext,
 ): Promise<ReplyPayload> {
-  if (!user || !await users.get(user))
+  if (!user)
     throw new AuthenticationError('Unauthenticated');
 
   const errors = await validateInput();

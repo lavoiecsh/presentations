@@ -16,9 +16,6 @@ describe('Chirp Scenarios', () => {
   it('user must be authenticated through headers', () =>
     expect(client.unauthenticated().chirp('a test')).rejects.toMatchObject({ message: 'Unauthenticated' }));
 
-  it('user must exist', () =>
-    expect(client.authenticated('none').chirp('a test')).rejects.toMatchObject({ message: 'Unauthenticated' }));
-
   it('returns not found if the chirp doesn\'t exist', () =>
     expect(client.queryChirp('none')).rejects.toMatchObject({ message: 'Chirp with id none not found' }));
 

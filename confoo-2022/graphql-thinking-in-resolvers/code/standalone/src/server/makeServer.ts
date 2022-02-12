@@ -4,6 +4,7 @@ import { join } from 'path';
 import { UserInMemoryDataSource } from '../dataSources/UserInMemoryDataSource';
 import { ChirpInMemoryDataSource } from '../dataSources/ChirpInMemoryDataSource';
 import { resolvers } from '../resolvers';
+import { decode } from 'jsonwebtoken';
 
 export function makeServer(): ApolloServer {
   const users = new UserInMemoryDataSource();
@@ -12,7 +13,7 @@ export function makeServer(): ApolloServer {
   return new ApolloServer({
     typeDefs: gql(readFileSync(join(process.cwd(), 'resources', 'schema.graphql'), 'utf8')),
     context: ({ req }) => ({
-      user: req.header('authorization'),
+      user: decode(req.header('authorization')),
     }),
     dataSources: () => ({
       users,

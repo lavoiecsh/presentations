@@ -4,6 +4,7 @@ import { PageRequest } from './PageRequest';
 import fetch from 'cross-fetch';
 import { ChirpFragment, ErrorsFragment, UserFragment } from './fragments';
 import { Connection } from '../src/dataSources/pagination';
+import { sign } from 'jsonwebtoken';
 
 export class TestClient extends ApolloClient<NormalizedCacheObject> {
   private url: string;
@@ -28,7 +29,7 @@ export class TestClient extends ApolloClient<NormalizedCacheObject> {
     super.setLink(createHttpLink({
       uri: this.url,
       fetch,
-      headers: { 'authorization': this.userId },
+      headers: { 'authorization': sign(this.userId, 'secret') },
     }));
     return this;
   }
