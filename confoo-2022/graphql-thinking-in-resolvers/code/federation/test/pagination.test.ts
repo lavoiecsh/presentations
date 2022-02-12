@@ -2,7 +2,7 @@ import { TestClient } from './TestClient';
 import { makeServer } from '../src/server/makeServer';
 import { PageRequest } from './PageRequest';
 import { Chirp } from './types';
-import { Connection } from '../src/dataSources/pagination';
+import { Connection } from '../src/lib/dataSources/pagination';
 
 describe('Chirp Pagination Scenarios', () => {
   const server = makeServer();

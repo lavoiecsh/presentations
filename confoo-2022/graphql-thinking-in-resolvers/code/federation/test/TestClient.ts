@@ -3,7 +3,7 @@ import { Chirp, ChirpPayload, CreateUserPayload, ReplyPayload, User } from './ty
 import { PageRequest } from './PageRequest';
 import fetch from 'cross-fetch';
 import { ChirpFragment, ErrorsFragment, UserFragment } from './fragments';
-import { Connection } from '../src/dataSources/pagination';
+import { Connection } from '../src/lib/dataSources/pagination';
 import { sign } from 'jsonwebtoken';
 
 export class TestClient extends ApolloClient<NormalizedCacheObject> {
