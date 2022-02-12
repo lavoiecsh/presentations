@@ -1,34 +1,31 @@
-import { TestClient } from './TestClient';
-import { makeServer } from '../src/server/makeServer';
-import { Chirp, UsageError, User } from './types';
+import { Chirp, UsageError } from './types';
+import { TestApplication } from './TestApplication';
+
+const usernameParent = 'test';
+const usernameChild = 'test2';
 
 describe('Reply Scenarios', () => {
-  const server = makeServer();
-  const client = new TestClient();
-  let user: User;
-  let chirp: Chirp;
+  const testApp = new TestApplication();
+  let parent: Chirp;
 
   beforeAll(() =>
-    server.listen({ port: 0 })
-      .then(({ url }) => client.setUrl(url))
-      .then(() => client.createUser('test'))
-      .then(payload => user = payload.user)
-      .then(() => client.authenticated(user.id))
-      .then(() => client.chirp('parent'))
-      .then(payload => chirp = payload.chirp));
+    testApp.start()
+      .then(() => testApp.createUserAndAuthenticateClient(usernameParent))
+      .then(() => testApp.client.chirp('parent'))
+      .then(({ chirp }) => parent = chirp));
 
   afterAll(() =>
-    server.stop());
+    testApp.stop());
 
   it('user must be authenticated through headers', () =>
-    expect(client.unauthenticated().reply(chirp.id, 'reply')).rejects.toMatchObject({ message: 'Unauthenticated' }));
+    expect(testApp.client.unauthenticated().reply(parent.id, 'reply')).rejects.toMatchObject({ message: 'Unauthenticated' }));
 
   describe('with an authenticated user', () => {
     beforeAll(() =>
-      client.authenticated(user.id));
+      testApp.createUserAndAuthenticateClient(usernameChild));
 
     it('must have contents', () =>
-      client.reply(chirp.id, '')
+      testApp.client.reply(parent.id, '')
         .then(({ reply, errors }) => {
           expect(reply).toBeNull();
           expect(errors).toContainEqual({
@@ -38,7 +35,7 @@ describe('Reply Scenarios', () => {
         }));
 
     it('contents must not be longer than 100 characters', () =>
-      client.reply(chirp.id, Array(102).join('a'))
+      testApp.client.reply(parent.id, Array(102).join('a'))
         .then(({ reply, errors }) => {
           expect(reply).toBeNull();
           expect(errors).toContainEqual({
@@ -50,7 +47,7 @@ describe('Reply Scenarios', () => {
         }));
 
     it('must reference an existing chirp', () =>
-      client.reply('none', 'test')
+      testApp.client.reply('none', 'test')
         .then(({ reply, errors }) => {
           expect(reply).toBeNull();
           expect(errors).toContainEqual({
@@ -61,7 +58,7 @@ describe('Reply Scenarios', () => {
         }));
 
     it('returns all errors at once', () =>
-      client.reply('none', '')
+      testApp.client.reply('none', '')
         .then(({ reply, errors }) => {
           expect(reply).toBeNull();
           expect(errors).toContainEqual({
@@ -80,7 +77,7 @@ describe('Reply Scenarios', () => {
       let errors: UsageError[];
 
       beforeAll(() =>
-        client.reply(chirp.id, 'some test')
+        testApp.client.reply(parent.id, 'some test')
           .then(payload => {
             reply = payload.reply;
             errors = payload.errors;
@@ -96,10 +93,10 @@ describe('Reply Scenarios', () => {
         expect(reply.replies).toHaveLength(0));
 
       it('has an author', () =>
-        expect(reply.author.username).toBe(user.username));
+        expect(reply.author.username).toBe(usernameChild));
 
       it('references its parent', () =>
-        expect(reply.parent.id).toBe(chirp.id));
+        expect(reply.parent.id).toBe(parent.id));
 
       it('its parent\'s replies contains itself', () =>
         expect(reply.parent.replies).toContainEqual(expect.objectContaining({ id: reply.id, contents: reply.contents })));

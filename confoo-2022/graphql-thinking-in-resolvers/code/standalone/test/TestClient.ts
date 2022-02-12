@@ -16,30 +16,24 @@ export class TestClient extends ApolloClient<NormalizedCacheObject> {
 
   setUrl(url: string): this {
     this.url = url;
-    super.setLink(createHttpLink({
-      uri: this.url,
-      fetch,
-      headers: { 'authorization': this.userId },
-    }));
-    return this;
+    return this.setupLink();
   }
 
   authenticated(userId: string): this {
     this.userId = userId;
-    super.setLink(createHttpLink({
-      uri: this.url,
-      fetch,
-      headers: { 'authorization': sign(this.userId, 'secret') },
-    }));
-    return this;
+    return this.setupLink();
   }
 
   unauthenticated(): this {
     this.userId = null;
+    return this.setupLink();
+  }
+
+  private setupLink(): this {
     super.setLink(createHttpLink({
       uri: this.url,
       fetch,
-      headers: { 'authorization': this.userId },
+      headers: { 'authorization': this.userId ? sign(this.userId, 'secret') : null },
     }));
     return this;
   }
@@ -48,7 +42,7 @@ export class TestClient extends ApolloClient<NormalizedCacheObject> {
     return super.query<{ user: User }>({
       query: gql`
           ${UserFragment}
-          
+
           query ($id: ID!) {
               user(id: $id) {
                   ...UserFragment
@@ -63,7 +57,7 @@ export class TestClient extends ApolloClient<NormalizedCacheObject> {
     return super.query<{ chirp: Chirp }>({
       query: gql`
           ${ChirpFragment}
-          
+
           query ($id: ID!) {
               chirp(id: $id) {
                   ...ChirpFragment
@@ -112,7 +106,7 @@ export class TestClient extends ApolloClient<NormalizedCacheObject> {
       mutation: gql`
           ${UserFragment}
           ${ErrorsFragment}
-          
+
           mutation ($username: String!) {
               createUser(input: { username: $username }) {
                   user { ...UserFragment }
@@ -129,7 +123,7 @@ export class TestClient extends ApolloClient<NormalizedCacheObject> {
       mutation: gql`
           ${ChirpFragment}
           ${ErrorsFragment}
-          
+
           mutation ($contents: String!) {
               chirp(input: { contents: $contents }) {
                   chirp { ...ChirpFragment }
@@ -146,7 +140,7 @@ export class TestClient extends ApolloClient<NormalizedCacheObject> {
       mutation: gql`
           ${ChirpFragment}
           ${ErrorsFragment}
-          
+
           mutation ($chirp: ID!, $contents: String!) {
               reply(input: {
                   chirp: $chirp

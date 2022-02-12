@@ -1,20 +1,17 @@
-import { makeServer } from '../src/server/makeServer';
 import { UsageError, User } from './types';
-import { TestClient } from './TestClient';
+import { TestApplication } from './TestApplication';
 
 describe('User Scenarios', () => {
-  const server = makeServer();
-  const client = new TestClient();
+  const testApp = new TestApplication();
 
   beforeAll(() =>
-    server.listen({ port: 0 })
-      .then(({ url }) => client.unauthenticated().setUrl(url)));
+    testApp.start());
 
   afterAll(() =>
-    server.stop());
+    testApp.stop());
 
   it('users must have a non-empty username', () =>
-    client.createUser('')
+    testApp.client.createUser('')
       .then(payload => {
         expect(payload.user).toBeNull();
         expect(payload.errors).toHaveLength(1);
@@ -24,7 +21,7 @@ describe('User Scenarios', () => {
       }));
 
   it('doesn\'t allow spaces in the username', () =>
-    client.createUser('some username')
+    testApp.client.createUser('some username')
       .then(payload => {
         expect(payload.user).toBeNull();
         expect(payload.errors).toHaveLength(1);
@@ -34,8 +31,8 @@ describe('User Scenarios', () => {
       }));
 
   it('doesn\'t allow multiple users to have the same username', () =>
-    client.createUser('foobar')
-      .then(() => client.createUser('foobar'))
+    testApp.client.createUser('foobar')
+      .then(() => testApp.client.createUser('foobar'))
       .then(payload => {
         expect(payload.user).toBeNull();
         expect(payload.errors).toHaveLength(1);
@@ -45,14 +42,14 @@ describe('User Scenarios', () => {
       }));
 
   it('returns not found if the user doesn\'t exist', () =>
-    expect(client.queryUser('none')).rejects.toMatchObject({ message: 'User with id none not found' }));
+    expect(testApp.client.queryUser('none')).rejects.toMatchObject({ message: 'User with id none not found' }));
 
   describe('new users', () => {
     let user: User;
     let errors: UsageError[];
 
     beforeAll(() =>
-      client.createUser('test')
+      testApp.client.createUser('test')
         .then(payload => {
           user = payload.user;
           errors = payload.errors;
@@ -71,7 +68,7 @@ describe('User Scenarios', () => {
       expect(user.chirps).toHaveLength(0));
 
     it('can be queried by it\'s identifier', () =>
-      client.queryUser(user.id)
+      testApp.client.queryUser(user.id)
         .then(queriedUser => {
           expect(queriedUser.id).toBe(user.id);
           expect(queriedUser.username).toBe(user.username);
