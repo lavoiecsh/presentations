@@ -1,31 +1,29 @@
-import { makeServer } from '../src/server/makeServer';
-import { TestClient } from './TestClient';
 import { Chirp, UsageError } from './types';
+import { TestApplication } from './TestApplication';
+
+const username = 'test';
 
 describe('Chirp Scenarios', () => {
-  const server = makeServer();
-  const client = new TestClient();
+  const testApp = new TestApplication();
 
   beforeAll(() =>
-    server.listen({ port: 0 })
-      .then(({ url }) => client.setUrl(url)));
+    testApp.start());
 
   afterAll(() =>
-    server.stop());
+    testApp.stop());
 
   it('user must be authenticated through headers', () =>
-    expect(client.unauthenticated().chirp('a test')).rejects.toMatchObject({ message: 'Unauthenticated' }));
+    expect(testApp.client.unauthenticated().chirp('a test')).rejects.toMatchObject({ message: 'Unauthenticated' }));
 
   it('returns not found if the chirp doesn\'t exist', () =>
-    expect(client.queryChirp('none')).rejects.toMatchObject({ message: 'Chirp with id none not found' }));
+    expect(testApp.client.queryChirp('none')).rejects.toMatchObject({ message: 'Chirp with id none not found' }));
 
   describe('with an authenticated user', () => {
     beforeAll(() =>
-      client.createUser('test')
-        .then(({ user }) => client.authenticated(user.id)));
+      testApp.createUserAndAuthenticateClient(username));
 
     it('must have contents', () =>
-      client.chirp('')
+      testApp.client.chirp('')
         .then(({ chirp, errors }) => {
           expect(chirp).toBeNull();
           expect(errors).toContainEqual({
@@ -35,7 +33,7 @@ describe('Chirp Scenarios', () => {
         }));
 
     it('contents must not be longer than 100 characters', () =>
-      client.chirp(new Array(102).join('a'))
+      testApp.client.chirp(new Array(102).join('a'))
         .then(({ chirp, errors }) => {
           expect(chirp).toBeNull();
           expect(errors).toContainEqual({
@@ -51,7 +49,7 @@ describe('Chirp Scenarios', () => {
       let errors: UsageError[];
 
       beforeAll(() =>
-        client.chirp('some test')
+        testApp.client.chirp('some test')
           .then(payload => {
             chirp = payload.chirp;
             errors = payload.errors;
@@ -67,7 +65,7 @@ describe('Chirp Scenarios', () => {
         expect(chirp.replies).toHaveLength(0));
 
       it('has an author', () =>
-        expect(chirp.author.username).toBe('test'));
+        expect(chirp.author.username).toBe(username));
 
       it('its author\'s chirps contains itself', () =>
         expect(chirp.author.chirps).toContainEqual(expect.objectContaining({
@@ -76,7 +74,7 @@ describe('Chirp Scenarios', () => {
         })));
 
       it('can be queried', () =>
-        client.queryChirp(chirp.id)
+        testApp.client.queryChirp(chirp.id)
           .then(queriedChirp => {
             expect(queriedChirp).toMatchObject(chirp);
           }));

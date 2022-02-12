@@ -1,11 +1,14 @@
 import { Chirp } from '../../domain/Chirp';
-import { ChirpContext } from '../../../dataSources/ChirpContext';
-import { User } from '../../../user/domain/User';
+import { ChirpContext } from '../../dataSources/ChirpContext';
+
+interface User {
+  id: string;
+}
 
 export function author(
   { authorId }: Chirp,
   _arguments: null,
-  { dataSources: { users } }: ChirpContext,
+  _context: ChirpContext,
 ): Promise<User> {
-  return users.get(authorId);
+  return Promise.resolve({ id: authorId });
 }

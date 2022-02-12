@@ -1,6 +1,6 @@
 import { DataSource } from 'apollo-datasource';
 import { User } from '../domain/User';
-import { UserDataSource } from '../../dataSources/ChirpContext';
+import { UserDataSource } from './UserContext';
 
 export class UserInMemoryDataSource extends DataSource implements UserDataSource {
   private readonly users: User[];

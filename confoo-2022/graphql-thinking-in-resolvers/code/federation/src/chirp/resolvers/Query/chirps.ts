@@ -1,7 +1,7 @@
-import { ChirpContext } from '../../../dataSources/ChirpContext';
-import { Connection, PageRequest } from '../../../lib/dataSources/pagination';
+import { Connection, PageRequest } from '../../../dataSources/pagination';
 import { Chirp } from '../../domain/Chirp';
 import { UserInputError } from 'apollo-server-errors';
+import { ChirpContext } from '../../dataSources/ChirpContext';
 
 export function chirps(
   _parent: null,

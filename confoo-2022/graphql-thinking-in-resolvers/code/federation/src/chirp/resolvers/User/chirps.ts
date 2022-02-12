@@ -1,6 +1,6 @@
 import { User } from '../../../user/domain/User';
-import { ChirpContext } from '../../../dataSources/ChirpContext';
 import { Chirp } from '../../domain/Chirp';
+import { ChirpContext } from '../../dataSources/ChirpContext';
 
 export function chirps(
   { id }: User,

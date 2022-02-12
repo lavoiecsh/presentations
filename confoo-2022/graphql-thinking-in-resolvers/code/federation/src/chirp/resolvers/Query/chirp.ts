@@ -1,6 +1,6 @@
 import { Chirp } from '../../domain/Chirp';
-import { ChirpContext } from '../../../dataSources/ChirpContext';
 import { UserInputError } from 'apollo-server-errors';
+import { ChirpContext } from '../../dataSources/ChirpContext';
 
 export function chirp(
   _parent: null,

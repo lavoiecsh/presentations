@@ -6,7 +6,7 @@ import { buildSubgraphSchema } from '@apollo/subgraph';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
-export function makeServer(): ApolloServer {
+export function makeChirpServer(): ApolloServer {
   const chirps = new ChirpInMemoryDataSource();
 
   return new ApolloServer({

@@ -1,5 +1,5 @@
 import { Chirp } from '../../domain/Chirp';
-import { ChirpContext } from '../../../dataSources/ChirpContext';
+import { ChirpContext } from '../../dataSources/ChirpContext';
 
 export function parent(
   { parentId }: Chirp,

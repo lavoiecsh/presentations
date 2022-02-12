@@ -1,5 +1,5 @@
 import { Chirp } from '../domain/Chirp';
-import { Connection, PageRequest } from '../../lib/dataSources/pagination';
+import { Connection, PageRequest } from '../../dataSources/pagination';
 
 export interface ChirpContext {
   user: string;

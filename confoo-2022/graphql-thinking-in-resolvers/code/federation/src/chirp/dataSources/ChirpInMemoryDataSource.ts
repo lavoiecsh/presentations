@@ -1,7 +1,7 @@
 import { DataSource } from 'apollo-datasource';
-import { ChirpDataSource } from '../../dataSources/ChirpContext';
 import { Chirp } from '../domain/Chirp';
-import { Connection, PageRequest } from '../../lib/dataSources/pagination';
+import { Connection, PageRequest } from '../../dataSources/pagination';
+import { ChirpDataSource } from './ChirpContext';
 
 export class ChirpInMemoryDataSource extends DataSource implements ChirpDataSource {
   private readonly chirps: Chirp[];

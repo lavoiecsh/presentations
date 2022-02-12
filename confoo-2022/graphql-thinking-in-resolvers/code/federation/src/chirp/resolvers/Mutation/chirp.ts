@@ -1,7 +1,7 @@
 import { EmptyContents, TooLongContents, UsageError } from '../../../lib/resolvers/Mutation/errors';
 import { Chirp } from '../../domain/Chirp';
-import { ChirpContext } from '../../../dataSources/ChirpContext';
 import { AuthenticationError } from 'apollo-server';
+import { ChirpContext } from '../../dataSources/ChirpContext';
 
 interface ChirpInput {
   contents: string;

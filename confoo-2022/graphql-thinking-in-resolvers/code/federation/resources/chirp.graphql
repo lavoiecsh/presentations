@@ -1,10 +1,9 @@
-type User {
-  id: ID!
-  username: String!
+extend type User @key(fields: "id") {
+  id: ID! @external
   chirps: [Chirp!]!
 }
 
-type Chirp {
+type Chirp @key(fields: "id") {
   id: ID!
   contents: String!
   author: User!
@@ -13,7 +12,6 @@ type Chirp {
 }
 
 type Query {
-  user(id: ID!): User!
   chirp(id: ID!): Chirp!
   chirps(first: Int, after: String, last: Int, before: String): ChirpConnection!
 }
@@ -32,21 +30,9 @@ type PageInfo {
 }
 
 type Mutation {
-  createUser(input: CreateUserInput!): CreateUserPayload!
   chirp(input: ChirpInput!): ChirpPayload!
   reply(input: ReplyInput!): ReplyPayload!
 }
-
-input CreateUserInput {
-  username: String!
-}
-
-type CreateUserPayload {
-  user: User
-  errors: [CreateUsageError!]
-}
-
-union CreateUsageError = EmptyUsername | InvalidUsername | UsernameTaken
 
 input ChirpInput {
   contents: String!
@@ -73,20 +59,6 @@ union ReplyUsageError = EmptyContents | TooLongContents | ChirpNotFound
 
 interface UsageError {
   message: String!
-}
-
-type EmptyUsername implements UsageError {
-  message: String!
-}
-
-type InvalidUsername implements UsageError {
-  message: String!
-  username: String!
-}
-
-type UsernameTaken implements UsageError {
-  message: String!
-  username: String!
 }
 
 type EmptyContents implements UsageError {

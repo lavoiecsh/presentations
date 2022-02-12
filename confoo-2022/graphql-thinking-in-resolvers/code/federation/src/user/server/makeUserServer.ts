@@ -5,7 +5,7 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import { resolvers } from '../resolvers';
 
-export function makeServer(): ApolloServer {
+export function makeUserServer(): ApolloServer {
   const users = new UserInMemoryDataSource();
 
   return new ApolloServer({

@@ -1,6 +1,6 @@
 import { User } from '../../domain/User';
-import { ChirpContext } from '../../../dataSources/ChirpContext';
 import { EmptyUsername, InvalidUsername, UsageError, UsernameTaken } from '../../../lib/resolvers/Mutation/errors';
+import { UserContext } from '../../dataSources/UserContext';
 
 interface CreateUserInput {
   username: string;
@@ -14,7 +14,7 @@ interface CreateUserPayload {
 export async function createUser(
   _parent: null,
   { input: { username } }: { input: CreateUserInput },
-  { dataSources: { users } }: ChirpContext,
+  { dataSources: { users } }: UserContext,
 ): Promise<CreateUserPayload> {
   const errors = await validateUsername();
   if (errors.length)
