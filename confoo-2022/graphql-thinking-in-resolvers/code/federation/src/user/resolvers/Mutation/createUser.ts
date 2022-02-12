@@ -1,6 +1,7 @@
 import { User } from '../../domain/User';
-import { EmptyUsername, InvalidUsername, UsageError, UsernameTaken } from '../../../lib/resolvers/Mutation/errors';
 import { UserContext } from '../../dataSources/UserContext';
+import { UsageError } from '../../../lib/resolvers/Mutation/errors';
+import { EmptyUsername, InvalidUsername, UsernameTaken } from './errors';
 
 interface CreateUserInput {
   username: string;
