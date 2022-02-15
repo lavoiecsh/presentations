@@ -8,6 +8,7 @@ export interface Chirp {
   id: string;
   contents: string;
   author: User;
+  date: string;
   parent: Chirp | null;
   replies: Chirp[];
 }

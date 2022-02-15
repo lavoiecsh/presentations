@@ -4,6 +4,7 @@ export const ChirpFragment = gql`
     fragment ChirpFragment on Chirp {
         id
         contents
+        date
         author {
             id
             username

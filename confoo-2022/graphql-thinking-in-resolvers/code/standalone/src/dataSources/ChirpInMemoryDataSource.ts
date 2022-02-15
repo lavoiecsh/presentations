@@ -15,6 +15,7 @@ export class ChirpInMemoryDataSource extends DataSource implements ChirpDataSour
     const chirp: Chirp = {
       id: (this.chirps.length + 1).toString(),
       authorId,
+      date: new Date(),
       parentId,
       contents,
     };
