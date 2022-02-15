@@ -10,6 +10,7 @@
 *.blg
 *.run.xml
 *.vrb
+*.dvi
 
 # JavaScript/TypeScript imports and compilation files
 node_modules

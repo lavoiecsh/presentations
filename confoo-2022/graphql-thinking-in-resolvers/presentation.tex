@@ -58,26 +58,29 @@
   \end{itemize}
 \end{frame}
 
-
 \section{GraphQL}
 \begin{frame}
-  \frametitle{What is GraphQL?}
-  From the GraphQL Specification\cite{graphql-spec}:
+  \frametitle{What is GraphQL?}  From the GraphQL
+  Specification\cite{graphql-spec}:
   \begin{quote}
-    GraphQL is a query language designed to build client applications by providing an intuitive and flexible syntax and system for describing their data requirements and interactions.
+    GraphQL is a query language designed to build client applications
+    by providing an intuitive and flexible syntax and system for
+    describing their data requirements and interactions.
   \end{quote}
 \end{frame}
 
 
 \begin{frame}
-  \frametitle{But What is GraphQL?}
-  A specification defining a query language for communication between different services over a network and how to implement the server and client sides of the communication
+  \frametitle{But What is GraphQL?}  A specification defining a query
+  language for communication between different services over a network
+  and how to implement the server and client sides of the
+  communication
 \end{frame}
 
 
 \begin{frame}
-  \frametitle{Why GraphQL?}
-  Only request and receive the fields you want:
+  \frametitle{Why GraphQL?}  Only request and receive the fields you
+  want:
   \begin{itemize}
   \item Smaller payloads
   \item Descriptive language
@@ -92,23 +95,30 @@
 
 
 \begin{frame}
-  \frametitle{How does it work?}
-  Server defines the schema it serves using the GraphQL language
+  \frametitle{How does it work?}  Server defines the schema it serves
+  using the GraphQL language
 
-  Clients can read the schema and send queries to the server using the GraphQL language, optionally passing in variables
+  Clients can read the schema and send queries to the server using the
+  GraphQL language, optionally passing in variables
 \end{frame}
-\note{typically one query per request, multiple queries in a single request are supported}
+\note{
+  typically one query per request, multiple queries in a single request are supported
+}
 
 
 \begin{frame}
   \frametitle{Operations}
   \begin{description}
-    \item[Query] a read-only fetch, analogous to REST GET
-    \item[Mutation] a write followed by a fetch, analogous to REST POST/PATCH/PUT/DELETE
-    \item[Subscription] a long-lived request that fetches data in response to source events
+  \item[Query] a read-only fetch, analogous to REST GET
+  \item[Mutation] a write followed by a fetch, analogous to REST
+    POST/PATCH/PUT/DELETE
+  \item[Subscription] a long-lived request that fetches data in
+    response to source events
   \end{description}
 \end{frame}
-\note{Subscription is less often used and less documented, multiple ways to serve it (WebSocket, Kafka, RabbitMQ, etc)}
+\note{
+  Subscription is less often used and less documented, multiple ways to serve it (WebSocket, Kafka, RabbitMQ, etc)
+}
 
 
 \begin{frame}
@@ -121,7 +131,8 @@
   \item POST Body includes
     \begin{itemize}
     \item[\texttt{query}] Query as a string
-    \item[\texttt{variables}] Query variable values as a JSON object, optional
+    \item[\texttt{variables}] Query variable values as a JSON object,
+      optional
     \item[\texttt{operationName}] Name for the operation, optional
     \end{itemize}
   \end{itemize}
@@ -130,17 +141,18 @@
 
 \section{GraphQL Language}
 \begin{frame}[fragile]
-  \frametitle{Primitives}
-  \texttt{scalar} represent a single value. Predefined: ID, String, Int, Float, Boolean.
+  \frametitle{Primitives} \texttt{scalar} represent a single
+  value. Predefined: ID, String, Int, Float, Boolean.
   \begin{verbatim}
-    \"Date and Time represented using the ISO 8601 standard\"
+    "Date and Time represented using the ISO 8601 standard"
     scalar DateTime
 
     "Email represented as a String, format validated when used as input"
     scalar Email
-  \end{verbatim}
+\end{verbatim}
 
-  \texttt{enum} represent an enumeration of possible values. Serialized as strings.
+  \texttt{enum} represent an enumeration of possible
+  values. Serialized as strings.
   \begin{verbatim}
     "Cardinal directions"
     enum Direction {
@@ -149,17 +161,16 @@
       SOUTH
       WEST
     }
-  \end{verbatim}
+\end{verbatim}
 \end{frame}
 
 
 \begin{frame}[fragile]
-  \frametitle{Modifiers}
-  \texttt{!} to denote a non-nullable field
+  \frametitle{Modifiers} \texttt{!} to denote a non-nullable field
   \begin{verbatim}
     "Non-nullable identifier"
     ID!
-  \end{verbatim}
+\end{verbatim}
 
   \texttt{[]} to denote a list of elements, around the type
   \begin{verbatim}
@@ -174,7 +185,7 @@
 
     "Non-nullable list of non-nullable strings"
     [String!]!
-  \end{verbatim}
+\end{verbatim}
 \end{frame}
 \note{
   nullability can be used to indicate a missing value, returning null for a non-nullable type generates an error
@@ -187,7 +198,8 @@
 
 \begin{frame}[fragile]
   \frametitle{Objects}
-  \texttt{type} used to represent a list of named and typed output fields
+  \texttt{type} used to represent a list of named
+  and typed output fields
   \begin{verbatim}
     "A blog post"
     type Blog {
@@ -203,9 +215,10 @@
       "Formatted content"
       content(format: ContentFormat = HTML): String!
     }
-  \end{verbatim}
+\end{verbatim}
 
-  \texttt{input} used to represent a list of named and typed input fields, can only contain primitives and other input types
+  \texttt{input} used to represent a list of named and typed input
+  fields, can only contain primitives and other input types
   \begin{verbatim}
     "Input used to create a new blog"
     input CreateBlogInput {
@@ -215,18 +228,22 @@
       "Contents"
       contents: String!
     }
-  \end{verbatim}
+\end{verbatim}
 \end{frame}
 \note{
-  arguments can be added to fields to allow specifying more information about what should be returned, format, locale, page for collections, etc
+  arguments can be added to fields to allow specifying more
+  information about what should be returned, format, locale, page for
+  collections, etc
 
-  only input objects and primitives can be used as arguments, input fields cannot have arguments
+  only input objects and primitives can be used as arguments, input
+  fields cannot have arguments
 }
 
 
 \begin{frame}[fragile]
   \frametitle{Abstractions}
-  \texttt{interface} used to represent a list of named and typed output fields, implemented by types
+  \texttt{interface} used to represent a
+  list of named and typed output fields, implemented by types
   \begin{verbatim}
     "A identified and queryable node within the graph"
     interface Node {
@@ -242,7 +259,7 @@
       "Title of the blog"
       title: String!
     }
-  \end{verbatim}
+\end{verbatim}
 
   \texttt{union} to represent a collection of possible output types
   \begin{verbatim}
@@ -272,23 +289,30 @@
 
     "Possible comments"
     union Comment = BlogComment | CommentComment
-  \end{verbatim}
+\end{verbatim}
 \end{frame}
 \note{
   any number of types can implement the interface
 
-  unions can be combined with interfaces to create more powerful abstractions, done by adding the same interface to every type in the union
+  unions can be combined with interfaces to create more powerful
+  abstractions, done by adding the same interface to every type in the
+  union
 }
 
 
 \begin{frame}[fragile]
-  \frametitle{Directives}
-  Annotations on the graph, prefixed with \@, can have arguments. Predefined:
+  \frametitle{Directives} Annotations on the graph, prefixed with \@,
+  can have arguments. Predefined:
   \begin{description}
-  \item[\texttt{@deprecated(reason: String!)}] indicate to the client the element is deprecated, along with a reason
-  \item[\texttt{@skip(if: Boolean!)}] don't return the field's value when the condition is false
-  \item[\texttt{@include(if: Boolean!)}] return the field's value only when the condition is true
-  \item[\texttt{@specifiedBy(url: String!)}] add formatting information for scalars, usually pointed to a standard or specification
+  \item[\texttt{@deprecated(reason: String!)}] indicate to the client
+    the element is deprecated, along with a reason
+  \item[\texttt{@skip(if: Boolean!)}] don't return the field's value
+    when the condition is false
+  \item[\texttt{@include(if: Boolean!)}] return the field's value only
+    when the condition is true
+  \item[\texttt{@specifiedBy(url: String!)}] add formatting
+    information for scalars, usually pointed to a standard or
+    specification
   \end{description}
 
   \begin{verbatim}
@@ -300,17 +324,187 @@
 
     "Date and Time represented using the ISO 8601 standard"
     scalar DateTime @specifiedBy(url: "https://www.iso.org/iso-8601-date-and-time-format.html")
-  \end{verbatim}
+\end{verbatim}
 \end{frame}
 
 
 \section{Resolver}
-\section{Federation}
-\section{Conclusion}
-\begin{frame}{Conclusion}
+\begin{frame}
+  \frametitle{Description} A resolver is a function that is used to
+  return the value for a specific field within a type.
 \end{frame}
 
-\begin{frame}{Links}
+\begin{frame}
+  \frametitle{Example}
+%% \begin{verbatim}
+%% type User { name: String!  }
+%% \end{verbatim}
+
+%% \begin{verbatim}
+%% resolvers = { User: { name: () => 'Sebastien Lavoie-Courchesne' } }
+%% \end{verbatim}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Anatomy} Resolvers take in 4 parameters:
+  \begin{description}
+  \item[parent] The parent object
+  \item[arguments] Any arguments passed to the field
+  \item[context] The context generated by the server
+  \item[info] Additional information about the request
+  \end{description}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Default Resolver} return parent[fieldName]
+\end{frame}
+
+\begin{frame}
+  \frametitle{Parent} Whatever was returned by the resolver of the
+  parent field, including properties that are not mapped to fields in
+  the GraphQL schema
+
+  null if the parent type is Query, Mutation, or Subscription
+\end{frame}
+
+\begin{frame}
+  \frametitle{Arguments} Any arguments passed to the field.
+\end{frame}
+
+\begin{frame}
+  \frametitle{Context} A context object generated by the ApolloServer,
+  it contains the result of the context function as well as a
+  dataSources property containing the result of the dataSources
+  function
+\end{frame}
+
+\begin{frame}
+  \frametitle{Scalars} Scalars can have additional parsing in the form
+  of a 3 function object:
+  \begin{description}
+  \item[parseLiteral] Used to parse values passed in through the
+    query's text itself
+  \item[parseValue] Used to parse values passed through the variables
+  \item[serialize] Used to serialize the domain value to a String
+  \end{description}
+
+  These can be used to add validation (correct format, specific
+  length, etc) as well as map it to another type (Date, URL, etc).
+\end{frame}
+
+\begin{frame}
+  \frametitle{Directives} Directives can have additional logic tied to
+  them in the form of a Visitor pattern.
+
+  Directives are not visible to the clients introspecting the schema.
+
+  These can be used to add validation (correct format, specific
+  length, etc) or transformations (lower/uppercase, rounding, etc)
+\end{frame}
+
+\section{Federation}
+\begin{frame}
+  \frametitle{Specification} Apollo Federation is an additional
+  specification to specify subgraphs, gateways and schema registries.
+
+  The gateway aggregates the subgraphs to expose a single GraphQL
+  endpoint. Subgraphs can reference each other.
+\end{frame}
+
+\begin{frame}
+  \frametitle{Subgraph}
+  Individual service exposing a GraphQL endpoint.
+  Must satisfy this additional schema:
+
+% \begin{verbatim}
+%   scalar _Any
+% scalar _FieldSet
+
+% # a union of all types that use the @key directive
+% union _Entity
+
+% type _Service {
+%   sdl: String
+% }
+
+% extend type Query {
+%   _entities(representations: [_Any!]!): [_Entity]!
+%   _service: _Service!
+% }
+
+% directive @external on FIELD_DEFINITION
+% directive @requires(fields: _FieldSet!) on FIELD_DEFINITION
+% directive @provides(fields: _FieldSet!) on FIELD_DEFINITION
+% directive @key(fields: _FieldSet!) repeatable on OBJECT | INTERFACE
+
+% # this is an optional directive discussed below
+% directive @extends on OBJECT | INTERFACE
+% \end{verbatim}
+  
+\end{frame}
+\note{
+  this is entirely handled by most GraphQL implementations
+
+  important part is the directives
+}
+
+\begin{frame}
+  \frametitle{Subgraph References}
+  Subgraphs can reference types from another subgraph by extending them:
+
+% \begin{verbatim}
+% extend type User @key(fields: "id") \{
+%   id: ID! @external
+  
+%   chirps: [Chirp!]!
+% \}
+
+% type Chirp @key(fields: "id") \{
+%   id: ID!
+
+%   author: User!
+% \}
+% \end{verbatim}
+
+  The Chirp service add a \texttt{chirps} field on the \texttt{User} type define in the User service.
+
+  The Chirp service also returns a reference to the user that authored the chirp.
+
+  User service has no knowledge of Chirps.
+\end{frame}
+
+\begin{frame}
+  \frametitle{Gateway} Main responsabilities:
+  \begin{itemize}
+  \item Validate schemas from each subgraph
+  \item Aggregate schemas from each subgraph
+  \item Expose single GraphQL endpoint
+  \item Parse incoming requests
+  \item Build query execution plan
+  \item Execute plan, sending sub-requests to each subgraph
+  \item Return aggregated result
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Schema Registry}
+  A Schema Registry can be used to validate and aggregate schemas. The gateway then pulls the schema from the schema registry.
+\end{frame}
+\note{
+  Apollo offers a paid online schema registry
+
+  there's also an open source schema registry that you can deploy yourself
+
+  Reduces load and potential failures on the gateway
+}
+
+\section{Conclusion}
+\begin{frame}
+  \frametitle{Conclusion}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Links}
   \begin{itemize}
   \item blog
   \item this presentation
