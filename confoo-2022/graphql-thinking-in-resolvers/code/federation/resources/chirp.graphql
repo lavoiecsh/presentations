@@ -1,3 +1,5 @@
+scalar DateTime @specifiedBy(url: "https://en.wikipedia.org/wiki/ISO_8601")
+
 extend type User @key(fields: "id") {
   id: ID! @external
   chirps: [Chirp!]!
@@ -6,6 +8,7 @@ extend type User @key(fields: "id") {
 type Chirp @key(fields: "id") {
   id: ID!
   contents: String!
+  date: DateTime!
   author: User!
   parent: Chirp
   replies: [Chirp!]!

@@ -61,6 +61,9 @@ describe('Chirp Scenarios', () => {
       it('is given an identifier', () =>
         expect(chirp.id).toBeDefined());
 
+      it('has a publication date', () =>
+        expect(new Date().getTime() - new Date(chirp.date).getTime()).toBeLessThan(500));
+
       it('has no replies', () =>
         expect(chirp.replies).toHaveLength(0));
 
