@@ -11,6 +11,7 @@
 *.run.xml
 *.vrb
 *.dvi
+_minted-*
 
 # JavaScript/TypeScript imports and compilation files
 node_modules

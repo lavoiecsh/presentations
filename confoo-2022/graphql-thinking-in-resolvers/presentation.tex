@@ -1,32 +1,81 @@
-\documentclass[notes]{beamer}
+\documentclass{beamer}
+\usetheme{Montpellier}
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 
-\usepackage[backend=bibtex]{biblatex}
-\bibliography{presentation}
+\usepackage{hyperref}
 
-%% \usepackage{listings}
-%% \lstdefinelanguage{GraphQL}{
-%%   keywords={type,enum,union,interface},
-%%   morekeywords={ID,String,Integer}
-%%   sensitive=true,
-%%   comment=[l]{#},
-%%   morestring=[b]"
-%% }
+\usepackage[
+backend=bibtex,
+style=authortitle-comp,
+]{biblatex}
+\addbibresource{presentation.bib}
+\DeclareFieldFormat{url}{\newline\scriptsize{\url{#1}}}
+
+\usepackage{enumitem}
+\setlist[description]{style=nextline}
+
+\AtBeginSection[]{
+  \begin{frame}
+    \vfill
+    \centering
+    \begin{beamercolorbox}[sep=8pt,center,shadow=true,rounded=true]{title}
+      \usebeamerfont{title}\insertsectionhead\par%
+    \end{beamercolorbox}
+    \vfill
+  \end{frame}
+}
+
+\usepackage{graphicx}
+\graphicspath{{./resources/}}
+
+\usepackage{minted}
+\definecolor{gql}{RGB}{229,53,171}
+\setminted[gql]{
+  autogobble=true,
+  fontfamily=tt,
+  fontsize=\footnotesize,
+  frame=leftline,
+  framerule=1pt,
+  rulecolor=gql,
+}
+\definecolor{ts}{RGB}{49,120,198}
+\setminted[ts]{
+  autogobble=true,
+  fontfamily=tt,
+  fontsize=\footnotesize,
+  frame=leftline,
+  framerule=1pt,
+  rulecolor=ts,
+}
+\setminted[json]{
+  autogobble=true,
+  fontfamily=tt,
+  fontsize=\footnotesize,
+  frame=leftline,
+  framerule=1pt,
+  rulecolor=black,
+}
 
 \title{GraphQL:\@Thinking in Resolvers}
 \author{Sébastien Lavoie-Courchesne}
 \date{February 23rd 2022}
 
 \begin{document}
+\section*{Introduction}
+\addtocounter{section}{1}
 \begin{frame}
   \titlepage{}
 \end{frame}
 
-\section{Introduction}
 \begin{frame}
-  opening
+  \begin{center}
+    Don't know how your clients are using your APIs?
+
+    \vspace{2em}
+    Just return everything\ldots{}the right way!
+  \end{center}
 \end{frame}
 
 
@@ -34,7 +83,7 @@
   \frametitle{Sébastien Lavoie-Courchesne}
   \begin{itemize}
   \item Architect for the Catalog Group at AppDirect
-  \item Member of the GraphQL Working Group at AppDirect
+  \item Member of the GraphQL Working Group
   \item Developed most of the initial infrastructure we use
   \end{itemize}
 \end{frame}
@@ -42,21 +91,64 @@
 
 \begin{frame}
   \frametitle{Contents}
+  \tableofcontents
 \end{frame}
 
 
 \begin{frame}
   \frametitle{Technologies used in the examples}
-  \begin{itemize}
-  \item GraphQL schemas
-  \item ApolloServer stack:
-    \begin{itemize}
-    \item NodeJS
-    \item Typescript
-    \item ApolloServer
-    \end{itemize}
-  \end{itemize}
+  \begin{minipage}{0.4\linewidth}
+    \begin{flushright}
+      GraphQL
+      
+    \vspace{2em}
+    NodeJS
+    
+    \vspace{2em}
+    TypeScript
+    
+    \vspace{2em}
+    ApolloServer
+    \end{flushright}
+  \end{minipage}
+  \begin{minipage}{0.45\linewidth}
+    \begin{center}
+      \includegraphics[height=3em]{GraphQL}
+
+      \includegraphics[height=3em]{NodeJS}
+    
+      \includegraphics[height=3em]{TypeScript}
+    
+      \includegraphics[height=3em]{ApolloServer}
+    \end{center}
+  \end{minipage}
 \end{frame}
+\note{
+  Colourized frame on code examples
+
+  pink for GraphQL
+  
+  blue for TS
+  
+  black for JSON
+}
+
+
+\begin{frame}
+  \frametitle{Chirper}
+  
+  A chirping service
+
+  \vspace{1em}
+  Create a user
+
+  \vspace{1em}
+  Send chirps
+
+  \vspace{1em}
+  Reply to chirps
+\end{frame}
+
 
 \section{GraphQL}
 \begin{frame}
@@ -71,16 +163,20 @@
 
 
 \begin{frame}
-  \frametitle{But What is GraphQL?}  A specification defining a query
-  language for communication between different services over a network
-  and how to implement the server and client sides of the
-  communication
+  \frametitle{But What is GraphQL?}
+
+  \begin{itemize}
+  \item Specification
+  \item Query language
+  \item Communication over the network
+  \item Server and client requirements
+  \end{itemize}
 \end{frame}
 
 
 \begin{frame}
-  \frametitle{Why GraphQL?}  Only request and receive the fields you
-  want:
+  \frametitle{Why GraphQL?}
+  Only request and receive the fields you want:
   \begin{itemize}
   \item Smaller payloads
   \item Descriptive language
@@ -91,15 +187,17 @@
   Often compared to REST and gRPC
   
   Mostly used over HTTP, but not always
+
+  Particularly useful when a server doesn't know about all its clients
 }
 
 
 \begin{frame}
-  \frametitle{How does it work?}  Server defines the schema it serves
-  using the GraphQL language
+  \frametitle{How does it work?}
+  Server defines the schema it serves using the GraphQL language
 
-  Clients can read the schema and send queries to the server using the
-  GraphQL language, optionally passing in variables
+  \vspace{1em}
+  Clients can read the schema and send queries to the server using the GraphQL language, optionally passing in variables
 \end{frame}
 \note{
   typically one query per request, multiple queries in a single request are supported
@@ -123,73 +221,150 @@
 
 \begin{frame}
   \frametitle{HTTP Communication}
+  Most common use of GraphQL
+  
+  HTTP GET or POST to a specific URL
+  
+  Traditional HTTP headers/cookies
+
+  Returns status code 200
+
+  \vspace{1em}
+  GET \texttt{query} parameter contains the query as a string
+  
+  POST JSON Body includes:
+
+  \hspace{1em}\texttt{query}, \texttt{variables}, \texttt{operationName}
+\end{frame}
+\note{
+  query as a string
+
+  variables as a JSON object
+  
+  operationName is used to differentiate multiple requests sent in a single call on the client side
+
+  errors are returned within the response body, clients must parse it
+}
+
+
+\begin{frame}
+  \frametitle{Server}
+  Servers handle requests by:
+
   \begin{itemize}
-  \item Most common use of GraphQL
-  \item HTTP GET or POST to a specific URL
-  \item Traditional HTTP headers/cookies
-  \item GET \texttt{query} parameter contains the query as a string
-  \item POST Body includes
-    \begin{itemize}
-    \item[\texttt{query}] Query as a string
-    \item[\texttt{variables}] Query variable values as a JSON object,
-      optional
-    \item[\texttt{operationName}] Name for the operation, optional
-    \end{itemize}
+  \item parsing query string
+  \item building execution plan
+  \item executing plan if valid
+  \item returning result
   \end{itemize}
 \end{frame}
 
 
-\section{GraphQL Language}
 \begin{frame}[fragile]
-  \frametitle{Primitives} \texttt{scalar} represent a single
+  \frametitle{Example Request}
+  \begin{minted}{json}
+    {
+      "query": "
+        query ($id: ID!) {
+          chirp(id: $id) {
+            contents
+          }
+        }
+      ",
+      "variables": {
+        "id": "1234"
+      }
+    }
+  \end{minted}
+\end{frame}
+
+
+\begin{frame}[fragile]
+  \frametitle{Example Response}
+  \begin{minted}{json}
+    {
+      "data": {
+        "chirp": {
+          "contents": "a chirp"
+        }
+      },
+      "errors": null
+    }
+  \end{minted}
+\end{frame}
+
+
+\section{GraphQL Schema Language}
+\begin{frame}[fragile=singleslide]
+  \frametitle{Primitives}
+  \mintinline{gql}{scalar} represent a single
   value. Predefined: ID, String, Int, Float, Boolean.
-  \begin{verbatim}
-    "Date and Time represented using the ISO 8601 standard"
+  \begin{minted}{gql}
+    """
+    Date and Time represented using the ISO 8601 standard
+    """
     scalar DateTime
 
-    "Email represented as a String, format validated when used as input"
+    """
+    Email represented as a String
+    Format validated when used as input
+    """
     scalar Email
-\end{verbatim}
+  \end{minted}
+\end{frame}
 
-  \texttt{enum} represent an enumeration of possible
-  values. Serialized as strings.
-  \begin{verbatim}
-    "Cardinal directions"
+\begin{frame}[fragile]
+  \frametitle{Primitives}
+  \mintinline{gql}{enum} represents an enumeration of possible values.
+
+  Serialized as strings.
+
+  \begin{minted}{gql}
+    """
+    Cardinal directions
+    """
     enum Direction {
       NORTH
       EAST
       SOUTH
       WEST
     }
-\end{verbatim}
+  \end{minted}
 \end{frame}
 
 
 \begin{frame}[fragile]
-  \frametitle{Modifiers} \texttt{!} to denote a non-nullable field
-  \begin{verbatim}
-    "Non-nullable identifier"
-    ID!
-\end{verbatim}
-
-  \texttt{[]} to denote a list of elements, around the type
-  \begin{verbatim}
-    "Nullable list of nullable strings"
-    [String]
-
-    "Non-nullable list of nullable strings"
-    [String]!
-
-    "Nullable list of non-nullable strings"
-    [String!]
-
-    "Non-nullable list of non-nullable strings"
-    [String!]!
-\end{verbatim}
+  \frametitle{Modifiers}
+  \mintinline{gql}{!} to denote a non-nullable field
+  \begin{minted}{gql}
+    """
+    Non-nullable identifier
+    """
+    id: ID!
+  \end{minted}
 \end{frame}
 \note{
   nullability can be used to indicate a missing value, returning null for a non-nullable type generates an error
+}
 
+\begin{frame}[fragile]
+  \frametitle{Modifiers}
+  \mintinline{gql}{[]} to denote a list of elements, around the type
+  \begin{minted}{gql}
+    """A nullable list of nullable strings"""
+    a: [String]
+    
+    """A non-nullable list of nullable strings"""
+    b: [String]!
+    
+    """A nullable list of non-nullable strings"""
+    c: [String!]
+    
+    """A non-nullable list of non-nullable strings"""
+    d: [String!]!
+  \end{minted}
+\end{frame}
+\note{
   an empty list is non-null
 
   good practice to have non-nullable elements within the list
@@ -198,37 +373,33 @@
 
 \begin{frame}[fragile]
   \frametitle{Objects}
-  \texttt{type} used to represent a list of named
-  and typed output fields
-  \begin{verbatim}
-    "A blog post"
-    type Blog {
-      "Identified of the blog post"
-      id: ID!
-
-      "Title of the blog post"
-      title: String!
-
-      "Comments on the blog post"
-      comments: [Comment!]!
-
-      "Formatted content"
-      content(format: ContentFormat = HTML): String!
-    }
-\end{verbatim}
-
-  \texttt{input} used to represent a list of named and typed input
-  fields, can only contain primitives and other input types
-  \begin{verbatim}
-    "Input used to create a new blog"
-    input CreateBlogInput {
-      "Title of the new blog"
-      title: String!
-
-      "Contents"
+  \mintinline{gql}{input} used to represent a list of named and typed input fields, can only contain primitives and other input types
+  \begin{minted}{gql}
+    """Input used to create a new chirp"""
+    input ChirpInput {
+      """Contents of the chirp"""
       contents: String!
     }
-\end{verbatim}
+  \end{minted}
+\end{frame}
+\note{
+}
+
+
+\begin{frame}[fragile]
+  \frametitle{Objects}
+  \mintinline{gql}{type} used to represent a list of named
+  and typed output fields
+  \begin{minted}{gql}
+    """A Chirp"""
+    type Chirp {
+      """Identifier of the chirp"""
+      id: ID!
+
+      """Contents of the chirp"""
+      contents(format: ContentsFormat = PLAIN): String!
+    }
+  \end{minted}
 \end{frame}
 \note{
   arguments can be added to fields to allow specifying more
@@ -242,108 +413,158 @@
 
 \begin{frame}[fragile]
   \frametitle{Abstractions}
-  \texttt{interface} used to represent a
-  list of named and typed output fields, implemented by types
-  \begin{verbatim}
-    "A identified and queryable node within the graph"
+  \mintinline{gql}{interface} used to represent a list of named and typed output fields, implemented by types
+  \begin{minted}{gql}
+    """An identified and queryable node within the graph"""
     interface Node {
-      "Identifier of the node"
+      """Unique non-nullable identifier of the node"""
       id: ID!
     }
 
-    "A blog post"
-    type Blog implements Node {
-      "Identifier of the blog"
+    """An identifiable Chirp"""
+    type Chirp implements Node {
+      """Identifier of the chirp"""
       id: ID!
 
-      "Title of the blog"
-      title: String!
+      """Contents of the chirp"""
+      contents: String!
     }
-\end{verbatim}
-
-  \texttt{union} to represent a collection of possible output types
-  \begin{verbatim}
-    "A comment on a blog post"
-    type BlogComment {
-      "Identifier"
-      id: ID!
-
-      "Comment text"
-      text: String!
-
-      "Blog on which the comment was made"
-      blog: Blog!
-    }
-
-    "A comment on a comment"
-    type CommentComment {
-      "Identifier"
-      id: ID!
-
-      "Comment text"
-      text: String!
-
-      "Comment on which the comment was made"
-      comment: Comment!
-    }
-
-    "Possible comments"
-    union Comment = BlogComment | CommentComment
-\end{verbatim}
+  \end{minted}
 \end{frame}
 \note{
   any number of types can implement the interface
-
-  unions can be combined with interfaces to create more powerful
-  abstractions, done by adding the same interface to every type in the
-  union
 }
 
 
 \begin{frame}[fragile]
-  \frametitle{Directives} Annotations on the graph, prefixed with \@,
-  can have arguments. Predefined:
-  \begin{description}
-  \item[\texttt{@deprecated(reason: String!)}] indicate to the client
-    the element is deprecated, along with a reason
-  \item[\texttt{@skip(if: Boolean!)}] don't return the field's value
-    when the condition is false
-  \item[\texttt{@include(if: Boolean!)}] return the field's value only
-    when the condition is true
-  \item[\texttt{@specifiedBy(url: String!)}] add formatting
-    information for scalars, usually pointed to a standard or
-    specification
-  \end{description}
+  \frametitle{Abstractions}
+  \mintinline{gql}{union} to represent a collection of possible output types
+  \begin{minted}{gql}
+    """A union of possible errors that can happen when creating a new chirp"""
+    union ChirpUsageError = EmptyContents | TooLongContents
 
-  \begin{verbatim}
-    # defining a custom directive to validate authorization for queries, mutations and subscriptions
-    directive @authorization(scopes: [String!]!) on QUERY | MUTATION | SUBSCRIPTION
-    
-    "A deprecated type"
-    type Comment @deprecated(reason: "Replaced by BlogComment and CommentComment") { ... }
+    """Contents were empty"""
+    type EmptyContentsError implements UsageError {
+      message: String!
+    }
 
-    "Date and Time represented using the ISO 8601 standard"
-    scalar DateTime @specifiedBy(url: "https://www.iso.org/iso-8601-date-and-time-format.html")
-\end{verbatim}
+    """Contents were too long"""
+    type TooLongContents implements UsageError {
+      message: String!
+      length: Int!
+      maxLength: Int!
+    }
+  \end{minted}
 \end{frame}
+\note{
+  unions can be combined with interfaces to create more powerful abstractions
+
+  done by adding the same interface to every type in the union
+}
+
+
+\begin{frame}[fragile]
+  \frametitle{Directives}
+  Annotations on the graph, prefixed with \mintinline{gql}{@}, can have arguments.
+
+  Predefined:
+  \begin{description}
+  \item [\mintinline{gql}{@deprecated(reason: String!)}]
+    indicate to the client the element is deprecated, along with a reason
+  \item [\mintinline{gql}{@skip(if: Boolean!)}]
+    don't return the field's value when the condition is false
+  \item [\mintinline{gql}{@include(if: Boolean!)}]
+    return the field's value only when the condition is true
+  \item [\mintinline{gql}{@specifiedBy(url: String!)}]
+    add formatting information for scalars, usually pointed to a standard or specification
+  \end{description}
+\end{frame}
+
+
+\begin{frame}[fragile]
+  \frametitle{Directives}
+  Custom directives can also be created
+  \begin{minted}{gql}
+    # defining a custom directive to validate authorization
+    # for output fields
+    directive @authorization(scopes: [String!]!) on FIELD_DEFINITION
+
+    type Mutation {
+      chirp(input: ChirpInput!): ChirpPayload!
+        @authorization(scopes: ["chirp.write"])
+    }
+  \end{minted}
+\end{frame}
+
+
+\section{GraphQL Query Language}
+\begin{frame}[fragile]
+  \frametitle{Description}
+  Clients use the query language to request information from a GraphQL server.
+
+  \vspace{1em}
+  \begin{minted}{gql}
+    query {
+      chirp(id: "1234") {
+        contents
+        author { username }
+      }
+    }
+  \end{minted}
+\end{frame}
+
+
+\begin{frame}[fragile]
+  \frametitle{Variables}
+  Variables can be passed to parameterize requests
+
+  \vspace{1em}
+  \begin{minted}{gql}
+    query ($id: ID!) {
+      chirp(id: $id) {
+        contents
+        author { username }
+      }
+    }
+  \end{minted}
+
+  \vspace{1em}
+  \begin{minted}{json}
+    {
+      "query": "query($id){chirp(id:$id){contents author{username}}}",
+      "variables": {
+        "id": "1234"
+      }
+    }
+  \end{minted}
+\end{frame}
+\note{
+  client-side advantage: static string construction (faster runtime)
+
+  server-side advantage: can cache query execution plan (faster responses)
+}
 
 
 \section{Resolver}
-\begin{frame}
-  \frametitle{Description} A resolver is a function that is used to
-  return the value for a specific field within a type.
+\begin{frame}[fragile]
+  \frametitle{Description}
+  A resolver is a function that is used to return the value for a specific field within a type.
+
+  \vspace{1em}
+  \begin{minted}{gql}
+    type User { name: String! }
+  \end{minted}
+
+  \vspace{1em}
+  \begin{minted}{ts}
+    resolvers = {
+      User: {
+        name: () => 'Sebastien Lavoie-Courchesne'
+      }
+    }
+  \end{minted}
 \end{frame}
 
-\begin{frame}
-  \frametitle{Example}
-%% \begin{verbatim}
-%% type User { name: String!  }
-%% \end{verbatim}
-
-%% \begin{verbatim}
-%% resolvers = { User: { name: () => 'Sebastien Lavoie-Courchesne' } }
-%% \end{verbatim}
-\end{frame}
 
 \begin{frame}
   \frametitle{Anatomy} Resolvers take in 4 parameters:
@@ -355,130 +576,341 @@
   \end{description}
 \end{frame}
 
+
+\begin{frame}[fragile]
+  \frametitle{Default Resolver}
+  If no resolver is defined for a field:
+  \begin{minted}{ts}
+    function [Type.fieldName](
+      parent: Type
+    ): any {
+      return parent[fieldName];
+    }
+  \end{minted}
+\end{frame}
+\note{
+  if field is a value, return it
+
+  if field is a function, execute it and return its output
+}
+
+
 \begin{frame}
-  \frametitle{Default Resolver} return parent[fieldName]
+  \frametitle{Parent}
+  Whatever was returned by the resolver of the parent field, including properties that are not mapped to fields in the GraphQL schema
+
+  \vspace{1em}
+  \mintinline{ts}{null} if the parent type is Query, Mutation, or Subscription
 \end{frame}
 
-\begin{frame}
-  \frametitle{Parent} Whatever was returned by the resolver of the
-  parent field, including properties that are not mapped to fields in
-  the GraphQL schema
 
-  null if the parent type is Query, Mutation, or Subscription
+\begin{frame}[fragile]
+  \frametitle{Arguments}
+  Any arguments passed to the field.
+
+  \begin{minted}{gql}
+    type Query {
+      chirps(first: Int, after: String, last: Int, before: String):
+        ChirpConnection!
+    }
+  \end{minted}
+
+  \begin{minted}{ts}
+    interface ChirpsArguments {
+      first: number;
+      after: string;
+      last: number;
+      before: string;
+    }
+
+    function chirps(parent: null, arguments: ChirpsArguments) // ...
+  \end{minted}
 \end{frame}
 
-\begin{frame}
-  \frametitle{Arguments} Any arguments passed to the field.
+
+\begin{frame}[fragile]
+  \frametitle{Context}
+  A context object generated by the ApolloServer
+
+  \vspace{1em}
+  \begin{minipage}{0.6\linewidth}
+    \begin{minted}{ts}
+      new ApolloServer({
+        context({ req, res }) {
+          return {
+            user: req.user,
+          };
+        },
+        dataSources() {
+          return {
+            users: new UserDataSource(),
+            chirps: new ChirpDataSource(),
+          };
+        }
+      });
+    \end{minted}
+  \end{minipage}
+  \begin{minipage}{0.05\linewidth}
+    $\Rightarrow{}$
+  \end{minipage}
+  \begin{minipage}{0.25\linewidth}
+    \begin{minted}{ts}
+      {
+        user,
+        dataSources: {
+          users,
+          chirps,
+        }
+      }
+    \end{minted}
+  \end{minipage}
 \end{frame}
+\note{
+  executed on each request
+  
+  contains the result of the context function as well as a dataSources property containing the result of the dataSources function
+}
+
+
+\begin{frame}[fragile]
+  \frametitle{Data Sources}
+  \begin{minted}{ts}
+    abstract class DataSource<TContext> {
+      initialize?(config: DataSourceConfig<TContext>):
+        void | Promise<void>;
+    }
+  \end{minted}
+
+  \vspace{1em}
+  Initialize is called on each incoming request
+
+  \vspace{1em}
+  Instantiate a new data source on each incoming request
+\end{frame}
+\note{
+  a second incoming request will re-initialize the data source
+}
+
 
 \begin{frame}
-  \frametitle{Context} A context object generated by the ApolloServer,
-  it contains the result of the context function as well as a
-  dataSources property containing the result of the dataSources
-  function
+  \frametitle{What to include?}
+  Context:
+  \begin{itemize}
+  \item authentication information
+  \item logger
+  \item tracer + trace information
+  \end{itemize}
+
+  \vspace{1em}
+  DataSources:
+  \begin{itemize}
+  \item repositories
+  \item caches
+  \item services
+  \item clients to other services
+  \end{itemize}
 \end{frame}
 
+
+\begin{frame}[fragile]
+  \frametitle{info}
+  \begin{minted}{ts}
+    interface GraphQLResolveInfo {
+      fieldName: string;
+      fieldNodes: FieldNode[];
+      returnType: GraphQLOutputType;
+      parentType: GraphQLObjectType;
+      path: Path;
+      schema: GraphQLSchema;
+      fragments: Record<string, FragmentDefinitionNode>;
+      rootValue: any;
+      operation: OperationDefinitionNode;
+      variableValues: Record<string, any>;
+    }
+  \end{minted}
+\end{frame}
+\note{
+  mostly extracted to other fields
+
+  path can be used to return the path when returning errors to identify where the error occurred
+}
+
+
 \begin{frame}
-  \frametitle{Scalars} Scalars can have additional parsing in the form
-  of a 3 function object:
+  \frametitle{Scalars}
+  Scalars can have additional parsing in the form of a 3 function object:
+
   \begin{description}
-  \item[parseLiteral] Used to parse values passed in through the
-    query's text itself
+  \item[parseLiteral] Used to parse values passed in through the query's text itself
   \item[parseValue] Used to parse values passed through the variables
   \item[serialize] Used to serialize the domain value to a String
   \end{description}
 
-  These can be used to add validation (correct format, specific
-  length, etc) as well as map it to another type (Date, URL, etc).
+  \vspace{1em}
+  These can be used to add validation (correct format, specific length, etc) as well as map it to another type (Date, URL, etc).
 \end{frame}
 
 \begin{frame}
-  \frametitle{Directives} Directives can have additional logic tied to
-  them in the form of a Visitor pattern.
+  \frametitle{Directives} Directives can have additional logic tied to them in the form of a Visitor pattern.
 
+  \vspace{1em}
   Directives are not visible to the clients introspecting the schema.
 
-  These can be used to add validation (correct format, specific
-  length, etc) or transformations (lower/uppercase, rounding, etc)
+  \vspace{1em}
+  These can be used to add validation (correct format, specific length, etc) or transformations (lower/uppercase, rounding, etc)
 \end{frame}
 
 \section{Federation}
 \begin{frame}
-  \frametitle{Specification} Apollo Federation is an additional
-  specification to specify subgraphs, gateways and schema registries.
+  \frametitle{Specification}
+  Apollo Federation is an additional specification to specify subgraphs, gateways and schema registries.
 
-  The gateway aggregates the subgraphs to expose a single GraphQL
-  endpoint. Subgraphs can reference each other.
+  \vspace{1em}
+  The gateway aggregates the subgraphs to expose a single GraphQL endpoint. Subgraphs can reference each other.
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
   \frametitle{Subgraph}
-  Individual service exposing a GraphQL endpoint.
-  Must satisfy this additional schema:
+  Individual service exposing a GraphQL endpoint. Services must satisfy an additional schema containing:
 
-% \begin{verbatim}
-%   scalar _Any
-% scalar _FieldSet
-
-% # a union of all types that use the @key directive
-% union _Entity
-
-% type _Service {
-%   sdl: String
-% }
-
-% extend type Query {
-%   _entities(representations: [_Any!]!): [_Entity]!
-%   _service: _Service!
-% }
-
-% directive @external on FIELD_DEFINITION
-% directive @requires(fields: _FieldSet!) on FIELD_DEFINITION
-% directive @provides(fields: _FieldSet!) on FIELD_DEFINITION
-% directive @key(fields: _FieldSet!) repeatable on OBJECT | INTERFACE
-
-% # this is an optional directive discussed below
-% directive @extends on OBJECT | INTERFACE
-% \end{verbatim}
-  
+  \begin{minted}{gql}
+    scalar _Any
+    scalar _FieldSet
+    
+    # a union of all types that use the @key directive
+    union _Entity
+    
+    type _Service {
+      sdl: String
+    }
+    
+    extend type Query {
+      _entities(representations: [_Any!]!): [_Entity]!
+      _service: _Service!
+    }
+  \end{minted}
 \end{frame}
 \note{
   this is entirely handled by most GraphQL implementations
-
-  important part is the directives
 }
 
-\begin{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Subgraph directives}
+  The following directives are available to allow referencing other types within other subgraphs:
+
+  \begin{minted}{gql}
+    directive @external on FIELD_DEFINITION
+    directive @requires(fields: _FieldSet!) on FIELD_DEFINITION
+    directive @provides(fields: _FieldSet!) on FIELD_DEFINITION
+    directive @key(fields: _FieldSet!) repeatable on OBJECT | INTERFACE
+    
+    # not all implementations allow this one
+    # there's an "extend" keyword as well
+    directive @extends on OBJECT | INTERFACE
+  \end{minted}
+\end{frame}
+
+
+\begin{frame}[fragile]
   \frametitle{Subgraph References}
   Subgraphs can reference types from another subgraph by extending them:
 
-% \begin{verbatim}
-% extend type User @key(fields: "id") \{
-%   id: ID! @external
-  
-%   chirps: [Chirp!]!
-% \}
+  \begin{minted}{gql}
+    extend type User @key(fields: "id") {
+      id: ID! @external
 
-% type Chirp @key(fields: "id") \{
-%   id: ID!
+      chirps: [Chirp!]!
+    }
 
-%   author: User!
-% \}
-% \end{verbatim}
+    type Chirp @key(fields: "id") {
+      id: ID!
 
-  The Chirp service add a \texttt{chirps} field on the \texttt{User} type define in the User service.
-
-  The Chirp service also returns a reference to the user that authored the chirp.
-
-  User service has no knowledge of Chirps.
+      author: User!
+    }
+  \end{minted}
 \end{frame}
+\note{
+  chirp service adds chirps field on the user type defined in the user service
+
+  chirp service also returns a reference to the user that authored the chirp
+
+  user service has no knowledge of chirps
+}
+
+
+\begin{frame}[fragile]
+  \frametitle{Returning references}
+  Return the type and values for all the fields in the key:
+  \begin{minted}{json}
+    {
+      "__typename": "User",
+      "id": "1234"
+    }
+  \end{minted}
+\end{frame}
+\note{
+  typename is only required when returning a union/interface
+
+  but a good practice to keep it
+}
+
+
+\begin{frame}[fragile]
+  \frametitle{Resolving references}
+  Special resolver to resolve an entity based on its key:
+  \begin{minted}{ts}
+    function __resolveReference(
+      parent: { id: string },
+      { dataSources: { users } }: Context
+    ): Promise<User> {
+      return users.getById(id);
+    }
+  \end{minted}
+\end{frame}
+\note{
+  parent, context, info
+
+  no arguments parameter
+}
+
+
+\begin{frame}[fragile]
+  \frametitle{Testing in isolation}
+  \texttt{\_\_resolveReference} can be tested by using the \texttt{\_entities} query:
+  \begin{minted}{gql}
+    query {
+      _entities(representations: [
+        {
+          __typename: "User",
+          id: "1234"
+        }
+      ]) {
+        ... on User {
+          username
+        }
+      }
+    }
+  \end{minted}
+\end{frame}
+\note{
+  this is equivalent to the query sent by the gateway when it needs to resolve an entity by its key
+}
+
 
 \begin{frame}
-  \frametitle{Gateway} Main responsabilities:
+  \frametitle{Gateway}
+
+  Main responsabilities on server start and/or periodically:
   \begin{itemize}
   \item Validate schemas from each subgraph
   \item Aggregate schemas from each subgraph
   \item Expose single GraphQL endpoint
+  \end{itemize}
+
+  \vspace{1em}
+  Main responsabilities on each request:
+  \begin{itemize}
   \item Parse incoming requests
   \item Build query execution plan
   \item Execute plan, sending sub-requests to each subgraph
@@ -486,9 +918,13 @@
   \end{itemize}
 \end{frame}
 
+
 \begin{frame}
   \frametitle{Schema Registry}
-  A Schema Registry can be used to validate and aggregate schemas. The gateway then pulls the schema from the schema registry.
+  A Schema Registry can be used to validate and aggregate schemas.
+
+  \vspace{1em}
+  The gateway then pulls the schema from the schema registry.
 \end{frame}
 \note{
   Apollo offers a paid online schema registry
@@ -498,21 +934,156 @@
   Reduces load and potential failures on the gateway
 }
 
+
+\section{Best Practices}
+\begin{frame}
+  \frametitle{Federation}
+  When working with federation across multiple teams:
+  \begin{itemize}
+  \item Define guidelines \& standards early
+  \item Have consistent naming strategies
+  \item Review schemas to ensure they follow guidelines \& standards
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]
+  \frametitle{Node interface}
+  Every identifiable type should implement this node interface
+  \begin{minted}{gql}
+    """An identifiable node within the graph"""
+    interface Node {
+      """Unique identifier of the node"""
+      id: ID!
+    }
+  \end{minted}
+
+  And the server can expose a node query to fetch any node within the graph
+  \begin{minted}{gql}
+    type Query {
+      """
+      A global node query to get any node within the
+      graph by its unique identifier
+      """
+      node(id: ID!): Node
+    }
+  \end{minted}
+\end{frame}
+
+
+\begin{frame}[fragile]
+  \frametitle{Connection Pattern}
+  For paginated queries, use the connection pattern\cite{Connection-Spec}
+
+  \begin{minted}{gql}
+    type PageInfo {
+      hasPreviousPage: Boolean!
+      hasNextPage: Boolean!
+      startCursor: String
+      endCursor: String
+    }
+
+    type ChirpConnection {
+      pageInfo: PageInfo!
+      edges: [Chirp!]!
+    }
+
+    type Query {
+      chirps(first: Int, after: String, last: Int, before: String):
+        ChirpConnection!
+    }
+  \end{minted}
+\end{frame}
+\note{
+  Originally designed by Relay
+
+  many client libraries understand this pattern and can automate the pagination
+}
+
+
+\begin{frame}[fragile]
+  \frametitle{Mutation Pattern}
+  Have a consistent pattern for mutations
+
+  \begin{minted}{gql}
+  type Mutation {
+    chirp(input: ChirpInput!): ChirpPayload!
+  }
+
+  input ChirpInput {
+    contents: String!
+  }
+
+  type ChirpPayload {
+    chirp: Chirp
+    errors: [ChirpUsageError!]
+  }
+
+  union ChirpUsageError = EmptyContents | ContentsTooLong
+  \end{minted}
+\end{frame}
+\note{
+  adding/removing fields is easier with an input object than multiple arguments
+
+  returning a payload with either the created/updated entity or a list of errors
+
+  also easier to update in the future
+}
+
+
+\begin{frame}
+  \frametitle{Persisted Queries}
+  Servers can allow creation of persisted queries.
+
+  \vspace{1em}
+  Client sends static query text to server (separate endpoint)\\
+  Server parses, generates query plan, saves everything, return id
+
+  \vspace{1em}
+  For each query, client sends id of the persisted query and variables
+\end{frame}
+\note{
+  smaller payloads on each request because you don't send the full query text
+
+  faster execution on the server
+}
+
+
+\begin{frame}
+  \frametitle{Rate Limiting}
+  Rate limit by allocating points to each client
+
+  \vspace{1em}
+  Calculate the cost of each request in points:
+  \begin{itemize}
+  \item querying a single node: 1 point
+  \item querying a list: 1 point + 1 point per element
+  \item executing a mutation: x points
+  \end{itemize}
+\end{frame}
+\note{
+  multiple different algorithms to calculate the cost
+
+  exact points are up to you
+
+  can also specify points independently through directives
+}
+
+
 \section{Conclusion}
 \begin{frame}
   \frametitle{Conclusion}
 \end{frame}
 
+\nocite{*}
 \begin{frame}
-  \frametitle{Links}
-  \begin{itemize}
-  \item blog
-  \item this presentation
-  \end{itemize}
+  \frametitle{Specifications}
+  \printbibliography[keyword=spec]
 \end{frame}
 
-\begin{frame}{References}
-  \printbibliography{}
+\begin{frame}
+  \frametitle{Material}
+  \printbibliography[keyword=material]
 \end{frame}
 
 \end{document}
