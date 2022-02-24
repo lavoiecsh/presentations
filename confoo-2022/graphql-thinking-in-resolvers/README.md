@@ -9,5 +9,6 @@ February 23rd, 2022
 
 # Files
 - [Slides](presentation.pdf)
-- [Notes](presentation-notes.pdf)
+- [Notes](presentation_notes.pdf)
 - [Standalone GraphQL server example](code/standalone)
+- [Federation GraphQL server example](code/federation)
