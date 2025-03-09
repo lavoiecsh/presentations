@@ -1,0 +1,104 @@
+type Query {
+  user(id: ID!): User!
+  users: [User!]!
+  issue(id: ID!): Issue!
+  issues: [Issue!]!
+}
+
+type Mutation {
+  createUser(input: CreateUserInput!): CreateUserPayload!
+  createIssue(input: CreateIssueInput!): CreateIssuePayload!
+  createPullRequest(input: CreatePullRequestInput!): CreatePullRequestPayload!
+  rejectPullRequest(input: RejectPullRequestInput!): RejectPullRequestPayload!
+  approvePullRequest(input: ApprovePullRequestInput!): ApprovePullRequestPayload!
+  validateIssue(input: ValidateIssueInput!): ValidateIssuePayload!
+  invalidateIssue(input: InvalidateIssueInput!): InvalidateIssuePayload!
+  closeIssue(input: CloseIssueInput!): CloseIssuePayload!
+}
+
+type User {
+  id: ID!
+  username: String!
+}
+
+type Issue {
+  id: ID!
+  name: String!
+
+  createdBy: User!
+  createdOn: Timestamp!
+  validatedBy: User!
+  validatedOn: Timestamp!
+
+  pullRequest: PullRequest
+  pullRequests: [PullRequest!]!
+}
+
+type PullRequest {
+  id: ID!
+  name: String!
+  status: PullRequestStatus!
+
+  createdBy: User!
+  createdOn: Timestamp!
+  reviewedBy: User
+  reviewedOn: Timestamp
+  
+  issue: Issue!
+}
+
+enum PullRequestStatus {
+  Open
+  Rejected
+  Approved
+}
+
+interface UserError {
+  message: String!
+}
+
+input CreateUserInput {
+  username: String!
+  password: String!
+}
+
+type CreateUserPayload {
+  user: User
+  errors: [CreateUserError!]
+}
+
+union CreateUserError = UsernameTakenError
+
+type NameTakenError implements UserError {
+  message: String!
+  username: String!
+}
+
+input CreateIssueInput {
+  name: String!
+}
+
+type CreateIssuePayload {
+  issue: Issue
+  errors: [CreateIssueError!]
+}
+
+union CreateIssueError = IssueNameTakenError
+
+type IssueNameTakenError implements UserError {
+  message: String!
+  name: String!
+}
+
+input CreatePullRequestInput {
+  issue: ID!
+}
+
+type CreatePullRequestPayload {
+  pullRequest: PullRequest
+  errors: [CreatePullRequestPayload!]
+}
+
+union CreatePullRequestPayload = IssueAlreadyHasOpenPullRequestError | IssueValidatedError | IssueClosedError
+
+type IssueAlreadyHasOpenPullRequestError implements d
